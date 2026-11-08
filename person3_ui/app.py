@@ -18,12 +18,14 @@ if str(ROOT_DIR) not in sys.path:
 from contracts.models import DAY_LABELS_TR, Venue  # noqa: E402
 from person2_engine.scheduler import hhmm_to_min, min_to_hhmm  # noqa: E402
 from person2_engine.service import (  # noqa: E402
+    estimate_both_modes_totals,
     get_city_options,
     load_city_data,
     plan_multi_day_trip,
     recalculate_from_midday,
     recalculate_trip,
     replan_with_feedback,
+    switch_plan_travel_mode,
 )
 from person3_ui import storage  # noqa: E402
 
@@ -31,6 +33,7 @@ load_dotenv(ROOT_DIR / ".env")
 
 MOCK_RESPONSE_PATH = ROOT_DIR / "contracts" / "mock_final_response.json"
 WALKING_PATHS_PATH = ROOT_DIR / "data" / "walking_paths.json"
+DRIVING_PATHS_PATH = ROOT_DIR / "data" / "driving_paths.json"
 MOCK_WALKING_PATHS_PATH = ROOT_DIR / "contracts" / "mock_walking_paths.json"
 
 DEFAULT_PROMPT = (
@@ -152,7 +155,10 @@ def _load_mock_response() -> Dict[str, Any]:
         return json.load(f)
 
 
-def _load_walking_paths() -> Dict[str, List[List[float]]]:
+def _load_walking_paths(travel_mode: str = "walking") -> Dict[str, List[List[float]]]:
+    if travel_mode == "driving" and DRIVING_PATHS_PATH.exists():
+        with open(DRIVING_PATHS_PATH, encoding="utf-8") as f:
+            return json.load(f)
     for p in (WALKING_PATHS_PATH, MOCK_WALKING_PATHS_PATH):
         if p.exists():
             with open(p, encoding="utf-8") as f:
@@ -164,7 +170,7 @@ def _google_maps_pin_url(lat: float, lon: float) -> str:
     return f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
 
 
-def _google_maps_walking_url(plan: Dict[str, Any]) -> str:
+def _google_maps_walking_url(plan: Dict[str, Any], travel_mode: str = "walking") -> str:
     coords = plan.get("route_coords", [])
     if len(coords) < 2:
         return "https://www.google.com/maps"
@@ -172,7 +178,8 @@ def _google_maps_walking_url(plan: Dict[str, Any]) -> str:
     dest = f"{coords[-1][0]},{coords[-1][1]}"
     middle = coords[1:-1]
     waypoints = "|".join(f"{c[0]},{c[1]}" for c in middle)
-    url = f"https://www.google.com/maps/dir/?api=1&travelmode=walking&origin={origin}&destination={dest}"
+    g_mode = "driving" if travel_mode == "driving" else "walking"
+    url = f"https://www.google.com/maps/dir/?api=1&travelmode={g_mode}&origin={origin}&destination={dest}"
     if waypoints:
         url += f"&waypoints={waypoints}"
     return url
@@ -218,6 +225,7 @@ def _build_pydeck_map(
     use_street_routing: bool = True,
     route_color: Optional[List[int]] = None,
     day_prefix: str = "",
+    travel_mode: str = "walking",
 ) -> pdk.Deck:
     stops = plan.get("stops", [])
     if stops:
@@ -227,6 +235,7 @@ def _build_pydeck_map(
         center_lat, center_lon = 40.7628, 29.9196
 
     line_color = route_color if route_color is not None else [37, 99, 235, 235]
+    leg_word = "Araç" if travel_mode == "driving" else "Yürüme"
     completed_ids = set(st.session_state.get("completed_stop_ids", []))
     point_rows: List[Dict[str, Any]] = []
 
@@ -247,7 +256,7 @@ def _build_pydeck_map(
                 "info": (
                     f"Kategori: {theme['badge']} | "
                     f"Saat: {s['arrival_time']}-{s['departure_time']} | "
-                    f"Yürüme: {s['walk_from_prev_min']} dk ({s['walk_from_prev_m']} m)"
+                    f"{leg_word}: {s['walk_from_prev_min']} dk ({s['walk_from_prev_m']} m)"
                 ),
                 "color": color,
             }
@@ -261,13 +270,13 @@ def _build_pydeck_map(
                         "lat": float(opt["lat"]),
                         "label": "Y",
                         "title": f"Alternatif Restoran: {opt['name']}",
-                        "info": f"Yürüme: {opt['walk_from_stop_min']} dk ({opt['walk_from_stop_m']} m)",
+                        "info": f"{leg_word}: {opt['walk_from_stop_min']} dk ({opt['walk_from_stop_m']} m)",
                         "color": [249, 115, 22, 220],
                     }
                 )
 
-    walking_paths = _load_walking_paths()
-    path_coords = _get_plan_walking_path(plan, walking_paths, use_street_routing=use_street_routing)
+    route_paths = _load_walking_paths(travel_mode)
+    path_coords = _get_plan_walking_path(plan, route_paths, use_street_routing=use_street_routing)
 
     layers = []
     if len(path_coords) >= 2:
@@ -343,6 +352,7 @@ def _build_pydeck_map(
 def _build_multi_day_pydeck_map(
     day_plans: List[Dict[str, Any]],
     use_street_routing: bool = True,
+    travel_mode: str = "walking",
 ) -> pdk.Deck:
     all_stops = [s for p in day_plans for s in p.get("stops", [])]
     if all_stops:
@@ -351,7 +361,8 @@ def _build_multi_day_pydeck_map(
     else:
         center_lat, center_lon = 40.7628, 29.9196
 
-    walking_paths = _load_walking_paths()
+    route_paths = _load_walking_paths(travel_mode)
+    leg_word = "Araç" if travel_mode == "driving" else "Yürüme"
     point_rows: List[Dict[str, Any]] = []
     layers = []
 
@@ -362,7 +373,7 @@ def _build_multi_day_pydeck_map(
         day_tr = DAY_LABELS_TR.get(day_plan.get("day_of_week", ""), day_plan.get("day_of_week", ""))
 
         path_coords = _get_plan_walking_path(
-            day_plan, walking_paths, use_street_routing=use_street_routing
+            day_plan, route_paths, use_street_routing=use_street_routing
         )
         if len(path_coords) >= 2:
             layers.append(
@@ -385,7 +396,10 @@ def _build_multi_day_pydeck_map(
                     "lat": float(s["lat"]),
                     "label": f"{d_num}-{s['order']}",
                     "title": f"{d_num}. Gün ({day_tr}) | {s['order']}. {s['name']}",
-                    "info": f"Kategori: {theme['badge']} | Saat: {s['arrival_time']}-{s['departure_time']}",
+                    "info": (
+                        f"Kategori: {theme['badge']} | Saat: {s['arrival_time']}-{s['departure_time']} | "
+                        f"{leg_word}: {s['walk_from_prev_min']} dk ({s['walk_from_prev_m']} m)"
+                    ),
                     "color": d_rgb,
                 }
             )
@@ -496,27 +510,29 @@ def _apply_restaurant_choice(plan: Dict[str, Any], chosen_venue_id: str) -> Dict
     return new_plan
 
 
-def _format_slide5_schedule(plan: Dict[str, Any]) -> str:
+def _format_slide5_schedule(plan: Dict[str, Any], travel_mode: str = "walking") -> str:
+    leg_noun = "araç sürüşü" if travel_mode == "driving" else "yürüme"
+    tot_label = "Toplam araç sürüşü" if travel_mode == "driving" else "Toplam yürüme"
     lines: List[str] = []
     for s in plan.get("stops", []):
         if s.get("is_start"):
             lines.append(f"{s['arrival_time']}  {s['name']:<38} başlangıç")
         elif s.get("is_end"):
             lines.append(
-                f"{s['arrival_time']}  {s['name']:<38} dönüş         önceki duraktan {s['walk_from_prev_min']:>2} dk yürüme ({s['walk_from_prev_m']} m)"
+                f"{s['arrival_time']}  {s['name']:<38} dönüş         önceki duraktan {s['walk_from_prev_min']:>2} dk {leg_noun} ({s['walk_from_prev_m']} m)"
             )
         elif s.get("is_lunch"):
             opt_cnt = len(s.get("restaurant_options", []))
             lines.append(
-                f"{s['arrival_time']}  Öğle yemeği ({opt_cnt} restoran önerisi)       {s['stay_min']:>2} dk mola    önceki duraktan {s['walk_from_prev_min']:>2} dk yürüme ({s['walk_from_prev_m']} m)"
+                f"{s['arrival_time']}  Öğle yemeği ({opt_cnt} restoran önerisi)       {s['stay_min']:>2} dk mola    önceki duraktan {s['walk_from_prev_min']:>2} dk {leg_noun} ({s['walk_from_prev_m']} m)"
             )
             for opt in s.get("restaurant_options", []):
-                lines.append(f"       • {opt['name']} ({opt['walk_from_stop_min']} dk yürüme)")
+                lines.append(f"       • {opt['name']} ({opt['walk_from_stop_min']} dk {leg_noun})")
         else:
             lines.append(
-                f"{s['arrival_time']}  {s['name']:<38} {s['stay_min']:>2} dk kalış   önceki duraktan {s['walk_from_prev_min']:>2} dk yürüme ({s['walk_from_prev_m']} m)"
+                f"{s['arrival_time']}  {s['name']:<38} {s['stay_min']:>2} dk kalış   önceki duraktan {s['walk_from_prev_min']:>2} dk {leg_noun} ({s['walk_from_prev_m']} m)"
             )
-    lines.append(f"\nToplam yürüme: {plan['total_walk_min']} dk, {plan['total_walk_km']} km")
+    lines.append(f"\n{tot_label}: {plan['total_walk_min']} dk, {plan['total_walk_km']} km")
     return "\n".join(lines)
 
 
@@ -560,13 +576,13 @@ def _render_official_header() -> None:
         '<div style="display: flex; align-items: center; gap: 16px;">'
         f'<div style="background: white; border-radius: 10px; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center;">{svg_logo}</div>'
         '<div>'
-        '<div style="font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: #94a3b8;">T.C. Kocaeli Kültür & Turizm Yaya Rehberi</div>'
-        '<div style="font-size: 24px; font-weight: 800; color: #ffffff; line-height: 1.2;">ROTA KOCAELİ <span style="font-size: 14px; font-weight: 400; color: #38bdf8;">| Akıllı Yürüyüş Planlayıcısı</span></div>'
-        '<div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">İzmit Tarihi Koridoru & Yaya Optimizasyon Motoru • OpenStreetMap Gerçek Kaldırım Rotaları</div>'
+        '<div style="font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: #94a3b8;">T.C. Kocaeli Kültür & Turizm Rota Rehberi</div>'
+        '<div style="font-size: 24px; font-weight: 800; color: #ffffff; line-height: 1.2;">ROTA KOCAELİ <span style="font-size: 14px; font-weight: 400; color: #38bdf8;">| Akıllı Yürüyüş & Araç Planlayıcısı</span></div>'
+        '<div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">İzmit Tarihi Koridoru & Rota Optimizasyon Motoru • OpenStreetMap Gerçek Yaya & Araç Rotaları</div>'
         '</div>'
         '</div>'
         '<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">'
-        '<span style="background: rgba(56, 189, 248, 0.18); border: 1px solid #38bdf8; color: #38bdf8; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px;">RESMİ SÜRÜM v3.0 • OSM YAYA</span>'
+        '<span style="background: rgba(56, 189, 248, 0.18); border: 1px solid #38bdf8; color: #38bdf8; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px;">RESMİ SÜRÜM v3.1 • OSM YAYA & ARAÇ</span>'
         f'{user_badge}'
         '</div>'
         '</div>'
@@ -751,9 +767,17 @@ def _render_account_page(venues: List[Venue]) -> None:
                 st.caption(f"{t['summary']} • Son Güncelleme: {t['updated_at']}")
             with c_open:
                 if st.button("📂 Planı Aç", key=f"open_trip_{t['id']}", type="primary", width="stretch"):
-                    st.session_state["day_plans"] = t["day_plans"]
-                    st.session_state["current_plan"] = t["day_plans"][0] if t["day_plans"] else None
-                    st.session_state["day2_plan"] = t["day_plans"][1] if len(t["day_plans"]) >= 2 else None
+                    loaded_plans = t["day_plans"]
+                    inferred_mode = (
+                        "driving"
+                        if loaded_plans
+                        and "araç (araba)" in str(loaded_plans[0].get("summary_text", "")).lower()
+                        else "walking"
+                    )
+                    st.session_state["travel_mode"] = inferred_mode
+                    st.session_state["day_plans"] = loaded_plans
+                    st.session_state["current_plan"] = loaded_plans[0] if loaded_plans else None
+                    st.session_state["day2_plan"] = loaded_plans[1] if len(loaded_plans) >= 2 else None
                     st.session_state["completed_stop_ids"] = list(t.get("completed_stop_ids", []))
                     st.session_state["removed_stop_ids"] = []
                     st.session_state["active_trip_id"] = t["id"]
@@ -805,7 +829,7 @@ def _render_eval_report_page() -> None:
         textwrap.dedent(
             """
             ### 🎯 Slayt 4, 6, 9, 10 Uyum Özeti
-            * **Hesabı Kod Yapar:** Sıralama (TSP), gerçek yaya süresi (`OSM routed-foot`), mesafe ve açılış saati kontrolleri `person2_engine/` içindedir.
+            * **Hesabı Kod Yapar:** Sıralama (TSP), gerçek yaya (`OSM routed-foot`) ve araç (`OSRM driving`) süreleri, mesafe ve açılış saati kontrolleri `person2_engine/` içindedir.
             * **Çok Günlü Rota & Konaklama:** 1, 2 veya 3 günlük gezilerde mekanlar coğrafi koridorlara tekrar etmeden bölünür; konaklama oteli her günün başlangıç ve dönüş noktası olur.
             * **Alternatif Plan & Kayıtlı Geziler:** Kullanıcı geri bildirimine (`daha az müze, daha çok park`) göre kısıtlar güncellenir, beğendiği plan hesabına kaydedilir.
             * **Gün Ortası & Tamamlandı:** Ziyaret edilen duraklar işaretlenir; anlık konum ve saat girilerek kalan gün deterministik olarak yeniden planlanır.
@@ -826,6 +850,109 @@ def _persist_progress_if_saved_trip() -> None:
         )
 
 
+def _switch_active_travel_mode(
+    new_mode: str,
+    use_mock: bool,
+    custom_durations_override: Optional[Dict[str, int]] = None,
+    target_day_idx: Optional[int] = None,
+) -> None:
+    st.session_state["travel_mode"] = new_mode
+    day_plans = st.session_state.get("day_plans", [])
+    if not day_plans or use_mock:
+        return
+    removed = list(st.session_state.get("removed_stop_ids", []))
+    new_plans: List[Dict[str, Any]] = []
+    for idx, dp in enumerate(day_plans):
+        dur_arg = (
+            custom_durations_override
+            if (target_day_idx == idx and custom_durations_override)
+            else None
+        )
+        updated_res = switch_plan_travel_mode(
+            day_plan_dict=dp,
+            travel_mode=new_mode,
+            custom_durations=dur_arg,
+            removed_venue_ids=removed,
+        )
+        new_plans.append(updated_res.model_dump())
+    st.session_state["day_plans"] = new_plans
+    st.session_state["current_plan"] = new_plans[0] if new_plans else None
+    st.session_state["day2_plan"] = new_plans[1] if len(new_plans) >= 2 else None
+    _persist_progress_if_saved_trip()
+
+
+def _on_click_travel_mode(
+    new_mode: str,
+    use_mock: bool,
+    target_day_idx: Optional[int] = None,
+) -> None:
+    if st.session_state.get("travel_mode", "walking") == new_mode:
+        return
+    custom_durs: Optional[Dict[str, int]] = None
+    if target_day_idx is not None:
+        day_num = target_day_idx + 1
+        dp_list = st.session_state.get("day_plans", [])
+        if 0 <= target_day_idx < len(dp_list):
+            durs: Dict[str, int] = {}
+            for s in dp_list[target_day_idx].get("stops", []):
+                if not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch"):
+                    k_exact = f"stay_{day_num}_{s['venue_id']}_{s['order']}"
+                    if k_exact in st.session_state:
+                        durs[s["venue_id"]] = int(st.session_state[k_exact])
+                    else:
+                        durs[s["venue_id"]] = int(s["stay_min"])
+            custom_durs = durs
+    _switch_active_travel_mode(
+        new_mode=new_mode,
+        use_mock=use_mock,
+        custom_durations_override=custom_durs,
+        target_day_idx=target_day_idx,
+    )
+
+
+def _render_map_mode_selector(
+    stops_list: List[List[Dict[str, Any]]],
+    key_prefix: str,
+    use_mock: bool,
+    custom_durations_override: Optional[Dict[str, int]] = None,
+    target_day_idx: Optional[int] = None,
+) -> str:
+    current_mode = st.session_state.get("travel_mode", "walking")
+    w_min, w_km, d_min, d_km = 0, 0.0, 0, 0.0
+    for stops in stops_list:
+        est = estimate_both_modes_totals(stops)
+        w_min += int(est["walking"]["duration_min"])
+        w_km += float(est["walking"]["distance_km"])
+        d_min += int(est["driving"]["duration_min"])
+        d_km += float(est["driving"]["distance_km"])
+    w_km = round(w_km, 2)
+    d_km = round(d_km, 2)
+
+    st.caption(
+        "Google Haritalar gibi ulaşım modunu harita üzerinden seçin (çizgi geometrisi ve tüm durak saatleri otomatik güncellenir):"
+    )
+    mc1, mc2 = st.columns(2)
+    walk_label = f"🚶 Yürüyüş Yolu ({w_min} dk • {w_km} km)"
+    drive_label = f"🚗 Araba Yolu ({d_min} dk • {d_km} km)"
+    mc1.button(
+        walk_label,
+        key=f"mode_walk_{key_prefix}",
+        type="primary" if current_mode == "walking" else "secondary",
+        width="stretch",
+        on_click=_on_click_travel_mode,
+        args=("walking", use_mock, target_day_idx),
+    )
+    mc2.button(
+        drive_label,
+        key=f"mode_drive_{key_prefix}",
+        type="primary" if current_mode == "driving" else "secondary",
+        width="stretch",
+        on_click=_on_click_travel_mode,
+        args=("driving", use_mock, target_day_idx),
+    )
+    return current_mode
+
+
 def _render_day_view(
     day_plan: Dict[str, Any],
     day_idx: int,
@@ -837,14 +964,22 @@ def _render_day_view(
     venues_by_id: Dict[str, Venue],
 ) -> None:
     day_num = day_idx + 1
+    current_mode = st.session_state.get("travel_mode", "walking")
+    is_driving = current_mode == "driving"
     m1, m2, m3, m4 = st.columns(4)
     poi_count = sum(
         1
         for s in day_plan["stops"]
         if not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch")
     )
-    m1.metric("Toplam Yürüme Süresi", f"{day_plan['total_walk_min']} dk")
-    m2.metric("Toplam Yürüme Mesafesi", f"{day_plan['total_walk_km']} km")
+    m1.metric(
+        "Toplam Araç Süresi" if is_driving else "Toplam Yürüme Süresi",
+        f"{day_plan['total_walk_min']} dk",
+    )
+    m2.metric(
+        "Toplam Araç Mesafesi" if is_driving else "Toplam Yürüme Mesafesi",
+        f"{day_plan['total_walk_km']} km",
+    )
     m3.metric("Gezilecek Durak Sayısı", f"{poi_count} mekan")
     m4.metric("Dönüş / Bitiş Saati", f"{day_plan['actual_end_time']} (Hedef: {day_plan['requested_end_time']})")
 
@@ -876,8 +1011,9 @@ def _render_day_view(
             bg_color = "#f0fdf4" if is_done else theme["bg"]
 
             done_badge = ' <span style="color:#10b981; font-weight:700;">(Gezildi ✅)</span>' if is_done else ""
+            leg_mode_noun = "araçla sürüş" if is_driving else "yürüme"
             walk_info = (
-                f"Önceki duraktan: <b>{s['walk_from_prev_min']} dk</b> ({s['walk_from_prev_m']} m) yürüme"
+                f"Önceki duraktan: <b>{s['walk_from_prev_min']} dk</b> ({s['walk_from_prev_m']} m) {leg_mode_noun}"
                 if s["order"] > 0
                 else "Günün başlangıç noktası"
             )
@@ -967,6 +1103,7 @@ def _render_day_view(
                                     parsed_request_dict=day_plan["parsed_request"],
                                     custom_durations=updated_durations,
                                     removed_venue_ids=removed,
+                                    travel_mode=current_mode,
                                 )
                                 st.session_state["day_plans"][day_idx] = new_res.model_dump()
                                 st.rerun()
@@ -987,9 +1124,10 @@ def _render_day_view(
                             st.rerun()
 
             if s.get("is_lunch") and s.get("restaurant_options"):
+                lunch_dist_label = "araç mesafesi" if is_driving else "yürüme"
                 st.markdown(
                     '<div style="background: #fff7ed; border: 1px dashed #ea580c; border-radius: 8px; padding: 6px 12px; margin: 4px 0 8px 0;">'
-                    '<span style="color: #c2410c; font-weight: 700; font-size: 12.5px;">🍽️ Öğle Yemeği Yeri Alternatifleri (≤ 10 dk yürüme):</span>'
+                    f'<span style="color: #c2410c; font-weight: 700; font-size: 12.5px;">🍽️ Öğle Yemeği Yeri Alternatifleri (≤ 10 dk {lunch_dist_label}):</span>'
                     '</div>',
                     unsafe_allow_html=True,
                 )
@@ -1042,6 +1180,7 @@ def _render_day_view(
                             completed_venue_ids=completed_ids,
                             custom_durations=updated_durations,
                             removed_venue_ids=st.session_state.get("removed_stop_ids", []),
+                            travel_mode=current_mode,
                         )
                         st.session_state["day_plans"][day_idx] = new_res.model_dump()
                         st.session_state["completed_stop_ids"] = []
@@ -1053,6 +1192,7 @@ def _render_day_view(
                         parsed_request_dict=day_plan["parsed_request"],
                         custom_durations=updated_durations,
                         removed_venue_ids=st.session_state.get("removed_stop_ids", []),
+                        travel_mode=current_mode,
                     )
                     st.session_state["day_plans"][day_idx] = new_res.model_dump()
                     st.rerun()
@@ -1076,6 +1216,7 @@ def _render_day_view(
                         completed_venue_ids=completed_ids,
                         custom_durations=updated_durations,
                         removed_venue_ids=st.session_state.get("removed_stop_ids", []),
+                        travel_mode=current_mode,
                     )
                     st.session_state["day_plans"][day_idx] = new_res.model_dump()
                     st.session_state["completed_stop_ids"] = []
@@ -1140,6 +1281,7 @@ def _render_day_view(
                             custom_durations=updated_durations,
                             removed_venue_ids=st.session_state.get("removed_stop_ids", []),
                             want_lunch_remaining=mid_want_lunch,
+                            travel_mode=current_mode,
                         )
                         st.session_state["day_plans"][day_idx] = new_res.model_dump()
                         st.session_state["completed_stop_ids"] = []
@@ -1149,17 +1291,32 @@ def _render_day_view(
                         st.error(str(err))
 
     with right_col:
-        st.subheader(f"🗺️ {day_title} Yürüyüş Haritası")
+        st.subheader(
+            f"🗺️ {day_title} {'Araç (Araba) Haritası' if is_driving else 'Yürüyüş Haritası'}"
+        )
+        active_mode = _render_map_mode_selector(
+            stops_list=[day_plan["stops"]],
+            key_prefix=f"day_{day_num}",
+            use_mock=use_mock,
+            custom_durations_override=updated_durations,
+            target_day_idx=day_idx,
+        )
+        map_line_color = (
+            [225, 29, 72, 225]
+            if active_mode == "driving" and len(st.session_state.get("day_plans", [])) <= 1
+            else color_rgb
+        )
         deck = _build_pydeck_map(
             day_plan,
             use_street_routing=use_street_routing,
-            route_color=color_rgb,
+            route_color=map_line_color,
             day_prefix=f"{day_num}-",
+            travel_mode=active_mode,
         )
         st.pydeck_chart(deck, width="stretch", height=580)
         st.link_button(
-            f"🧭 {day_title} Rotasını Google Haritalar'da Aç",
-            _google_maps_walking_url(day_plan),
+            f"🧭 {day_title} Rotasını Google Haritalar'da Aç ({'Araba' if active_mode == 'driving' else 'Yürüyüş'})",
+            _google_maps_walking_url(day_plan, travel_mode=active_mode),
             width="stretch",
         )
 
@@ -1176,9 +1333,9 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
             help="Diğer modüller olmadan contracts/mock_final_response.json ile test et.",
         )
         use_street_geom = st.toggle(
-            "Sokak Kıvrımlı Harita (OSM Yaya)",
+            "Sokak Kıvrımlı Harita (OSM Yaya / Araç)",
             value=True,
-            help="Açıldığında harita çizgisi gerçek kaldırımları ve yaya yollarını takip eder.",
+            help="Açıldığında harita çizgisi gerçek kaldırımları veya tek yönlü araç yollarını takip eder.",
         )
         st.metric("Oturum İstek Kotası", f"{st.session_state['request_count']} / {daily_limit}")
 
@@ -1292,6 +1449,7 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
             st.session_state["current_plan"] = mock_dict
             st.session_state["day2_plan"] = None
         else:
+            active_mode = st.session_state.get("travel_mode", "walking")
             cache_key = json.dumps(
                 {
                     "text": user_text.strip(),
@@ -1304,6 +1462,7 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                     "food": food_override,
                     "lunch": lunch_ov,
                     "plan_days": day_count_selected,
+                    "travel_mode": active_mode,
                 },
                 sort_keys=True,
                 ensure_ascii=False,
@@ -1346,8 +1505,15 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 elif day_count_selected.startswith("3 Gün"):
                     overrides["num_days"] = 3
 
-                with st.spinner("En az yürüyüşlü rota, yaya yolları ve saatler hesaplanıyor..."):
-                    res_list = plan_multi_day_trip(user_text, overrides=overrides)
+                spinner_msg = (
+                    "En kısa araç rotası ve saatler hesaplanıyor..."
+                    if active_mode == "driving"
+                    else "En az yürüyüşlü rota, yaya yolları ve saatler hesaplanıyor..."
+                )
+                with st.spinner(spinner_msg):
+                    res_list = plan_multi_day_trip(
+                        user_text, overrides=overrides, travel_mode=active_mode
+                    )
                     plan_dicts = [r.model_dump() for r in res_list]
                     st.session_state["plan_cache"][cache_key] = plan_dicts
                     st.session_state["day_plans"] = json.loads(json.dumps(plan_dicts))
@@ -1359,6 +1525,9 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
     if not day_plans:
         st.info("Başlamak için gezi isteğinizi yazıp **🗺️ Rota Oluştur** butonuna tıklayın.")
         return
+
+    current_mode = st.session_state.get("travel_mode", "walking")
+    is_driving = current_mode == "driving"
 
     # Slayt 4: Alternatif plan + Planı Hesaba Kaydet çubuğu
     if not use_mock:
@@ -1387,6 +1556,7 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                             removed_venue_ids=st.session_state.get("removed_stop_ids", []),
                             num_days_override=len(day_plans),
                             accommodation_id=acc_override,
+                            travel_mode=current_mode,
                         )
                         new_dicts = [r.model_dump() for r in new_list]
                         st.session_state["day_plans"] = new_dicts
@@ -1461,7 +1631,9 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 )
 
         with tabs[-2]:
-            st.markdown(f"### 🗺️ {len(day_plans)} Günlük Birleşik Yürüyüş Haritası")
+            st.markdown(
+                f"### 🗺️ {len(day_plans)} Günlük Birleşik {'Araç (Araba)' if is_driving else 'Yürüyüş'} Haritası"
+            )
             tot_walk = sum(dp["total_walk_min"] for dp in day_plans)
             tot_km = round(sum(dp["total_walk_km"] for dp in day_plans), 2)
             tot_pois = sum(
@@ -1472,8 +1644,14 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 )
                 for dp in day_plans
             )
+            mode_noun = "araç sürüşü" if is_driving else "yürüme"
             st.success(
-                f"🎉 **Çok Günlü Tur Özeti:** Toplam {tot_walk} dk yürüme | {tot_km} km yol | {tot_pois} farklı mekan | {len(day_plans)} gün!"
+                f"🎉 **Çok Günlü Tur Özeti:** Toplam {tot_walk} dk {mode_noun} | {tot_km} km yol | {tot_pois} farklı mekan | {len(day_plans)} gün!"
+            )
+            combined_mode = _render_map_mode_selector(
+                stops_list=[dp["stops"] for dp in day_plans],
+                key_prefix="combined",
+                use_mock=use_mock,
             )
             legend_parts = []
             for idx, dp in enumerate(day_plans):
@@ -1484,7 +1662,9 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 )
             st.markdown("".join(legend_parts), unsafe_allow_html=True)
             combined_deck = _build_multi_day_pydeck_map(
-                day_plans, use_street_routing=use_street_geom
+                day_plans,
+                use_street_routing=use_street_geom,
+                travel_mode=combined_mode,
             )
             st.pydeck_chart(combined_deck, width="stretch", height=600)
 
@@ -1495,7 +1675,7 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 d_tr = DAY_LABELS_TR.get(dp.get("day_of_week", ""), dp.get("day_of_week", ""))
                 with dl_cols[idx]:
                     st.markdown(f"#### {idx + 1}. Gün: {d_tr}")
-                    txt_d = _format_slide5_schedule(dp)
+                    txt_d = _format_slide5_schedule(dp, travel_mode=current_mode)
                     st.code(txt_d, language="text")
                     st.download_button(
                         f"📥 {idx + 1}. Gün Planını İndir (.txt)",
@@ -1507,7 +1687,7 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
     else:
         tab_cards, tab_slide5 = st.tabs(
             [
-                "🗺️ Görselli Rota & Yaya Haritası",
+                f"🗺️ Görselli Rota & {'Araç' if is_driving else 'Yaya'} Haritası",
                 "📋 Slayt 5 Kompakt Çizelgesi & İndirme",
             ]
         )
@@ -1524,7 +1704,7 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
             )
         with tab_slide5:
             st.subheader("📋 Slayt 5 Formatında Sade Zaman Çizelgesi")
-            slide5_text = _format_slide5_schedule(day_plans[0])
+            slide5_text = _format_slide5_schedule(day_plans[0], travel_mode=current_mode)
             st.code(slide5_text, language="text")
             day_tag = day_plans[0].get("day_of_week", "rota")
             st.download_button(
@@ -1537,7 +1717,7 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
 
 def main() -> None:
     st.set_page_config(
-        page_title="ROTA KOCAELİ | Akıllı Yürüyüş Planlayıcısı",
+        page_title="ROTA KOCAELİ | Akıllı Yürüyüş & Araç Planlayıcısı",
         page_icon="🗺️",
         layout="wide",
     )
@@ -1552,6 +1732,7 @@ def main() -> None:
     st.session_state.setdefault("auth_user", None)
     st.session_state.setdefault("active_trip_id", None)
     st.session_state.setdefault("active_page", "planner")
+    st.session_state.setdefault("travel_mode", "walking")
 
     venues, venues_by_id, _ = load_city_data()
 

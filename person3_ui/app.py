@@ -975,11 +975,17 @@ def _render_official_header() -> None:
 def _render_top_navbar() -> str:
     st.session_state.setdefault("active_page", "planner")
     active = st.session_state["active_page"]
+    user = st.session_state.get("auth_user")
+    account_label = (
+        f"👤 Profilim ({user['full_name']})"
+        if user and user.get("full_name")
+        else "👤 Profilim & Kayıtlı Geziler"
+    )
 
     nav_items = [
         ("planner", "🧭 Rota Planlayıcı"),
         ("catalog", "🏛️ Mekan Kataloğu"),
-        ("account", "💾 Kayıtlı Geziler & Hesap"),
+        ("account", account_label),
         ("eval", "📊 Sınama & Hakkında"),
     ]
     st.markdown('<div class="rk-navbar-wrap">', unsafe_allow_html=True)
@@ -1065,18 +1071,78 @@ def _render_catalog_page(venues: List[Venue]) -> None:
             st.markdown(card_html, unsafe_allow_html=True)
 
 
+def _load_saved_trip_into_state(t: Dict[str, Any]) -> None:
+    loaded_plans = t["day_plans"]
+    inferred_mode = (
+        "driving"
+        if loaded_plans
+        and "araç (araba)" in str(loaded_plans[0].get("summary_text", "")).lower()
+        else "walking"
+    )
+    st.session_state["travel_mode"] = inferred_mode
+    st.session_state["day_plans"] = loaded_plans
+    st.session_state["current_plan"] = loaded_plans[0] if loaded_plans else None
+    st.session_state["day2_plan"] = loaded_plans[1] if len(loaded_plans) >= 2 else None
+    st.session_state["completed_stop_ids"] = list(t.get("completed_stop_ids", []))
+    st.session_state["removed_stop_ids"] = []
+    st.session_state["active_trip_id"] = t["id"]
+    st.session_state["active_page"] = "planner"
+
+
 def _render_account_page(venues: List[Venue]) -> None:
-    st.subheader("💾 Kullanıcı Hesabı & Kayıtlı Geziler")
+    st.subheader("👤 Profilim & Kayıtlı Geziler")
     st.caption(
-        f"Aktif Depolama Katmanı: **{storage.get_backend_label()}** • Slayt 14 Gizlilik Kuralı gereği kullanıcı e-postası ve hesap bilgileri dil modeline asla gönderilmez."
+        f"Aktif Depolama Katmanı: **{storage.get_backend_label()}** • Oturumunuz kalıcı olarak saklanır (sayfayı yenileseniz bile açık kalır). Slayt 14 Gizlilik Kuralı gereği kullanıcı e-postası ve hesap bilgileri dil modeline asla gönderilmez."
     )
 
     user = st.session_state.get("auth_user")
     if not user:
-        t_login, t_reg = st.tabs(["🔑 Giriş Yap", "🆕 Yeni Hesap Oluştur"])
+        local_profiles = storage.list_local_users()
+        if local_profiles:
+            st.markdown("#### ⚡ Kayıtlı Profiller (Şifresiz Tek Tıkla Hızlı Giriş)")
+            for prof in local_profiles:
+                with st.container(border=True):
+                    p_info, p_btn1, p_btn2 = st.columns([2.6, 1.3, 1.4])
+                    with p_info:
+                        st.markdown(
+                            f"**👤 {prof['full_name']}** (`{prof['email']}`) — **{prof['trip_count']} Kayıtlı Gezi**"
+                        )
+                        st.caption("Bu cihazda kayıtlı profiliniz. Şifre yazmadan tek tıkla açabilirsiniz.")
+                    with p_btn1:
+                        if st.button(
+                            f"🚀 {prof['full_name']} Olarak Gir",
+                            key=f"quick_login_{prof['id']}",
+                            type="primary",
+                            width="stretch",
+                        ):
+                            ok, msg, logged_u = storage.quick_login_by_id(prof["id"])
+                            if ok and logged_u:
+                                st.session_state["auth_user"] = logged_u
+                                st.toast(msg)
+                                st.rerun()
+                    with p_btn2:
+                        if st.button(
+                            "📂 Gir ve Son Planımı Aç",
+                            key=f"quick_login_open_{prof['id']}",
+                            width="stretch",
+                        ):
+                            ok, msg, logged_u = storage.quick_login_by_id(prof["id"])
+                            if ok and logged_u:
+                                st.session_state["auth_user"] = logged_u
+                                user_trips = storage.list_saved_trips(logged_u)
+                                if user_trips:
+                                    _load_saved_trip_into_state(user_trips[0])
+                                st.rerun()
+
+        t_login, t_reg, t_reset = st.tabs(
+            ["🔑 E-posta veya İsimle Giriş Yap", "🆕 Yeni Hesap Oluştur", "🔄 Şifremi Unuttum / Yenile"]
+        )
         with t_login:
             with st.form("login_form"):
-                l_email = st.text_input("E-posta Adresiniz", placeholder="ornek@kocaeli.edu.tr")
+                l_email = st.text_input(
+                    "E-posta Adresiniz veya Adınız Soyadınız",
+                    placeholder="Örn: ozlemyildirim3010@gmail.com veya Özlem Yıldırım",
+                )
                 l_pass = st.text_input("Şifreniz", type="password")
                 if st.form_submit_button("Giriş Yap", type="primary", width="stretch"):
                     ok, msg, logged_user = storage.login_user(l_email, l_pass)
@@ -1088,8 +1154,8 @@ def _render_account_page(venues: List[Venue]) -> None:
                         st.error(msg)
         with t_reg:
             with st.form("register_form"):
-                r_name = st.text_input("Adınız Soyadınız", placeholder="Ahmet Yılmaz")
-                r_email = st.text_input("E-posta Adresiniz", placeholder="ornek@kocaeli.edu.tr")
+                r_name = st.text_input("Adınız Soyadınız", placeholder="Özlem Yıldırım")
+                r_email = st.text_input("E-posta Adresiniz", placeholder="ornek@gmail.com")
                 r_pass = st.text_input("Şifre (en az 6 karakter)", type="password")
                 if st.form_submit_button("Hesap Oluştur ve Giriş Yap", type="primary", width="stretch"):
                     ok, msg, new_user = storage.register_user(r_email, r_pass, full_name=r_name)
@@ -1099,6 +1165,22 @@ def _render_account_page(venues: List[Venue]) -> None:
                         st.rerun()
                     else:
                         st.error(msg)
+        with t_reset:
+            with st.form("reset_pw_form"):
+                rst_id = st.text_input(
+                    "Kayıtlı E-posta Adresiniz veya Adınız Soyadınız",
+                    value=local_profiles[0]["email"] if local_profiles else "",
+                )
+                rst_pass = st.text_input("Yeni Şifreniz (en az 4 karakter)", type="password")
+                if st.form_submit_button("Şifremi Güncelle ve Giriş Yap", type="primary", width="stretch"):
+                    ok, msg, reset_u = storage.reset_password(rst_id, rst_pass)
+                    if ok and reset_u:
+                        st.session_state["auth_user"] = reset_u
+                        st.success(msg)
+                        st.rerun()
+                    else:
+                        st.error(msg)
+
         with st.expander("ℹ️ Supabase Ücretsiz Bulut Veritabanı Kurulumu (Opsiyonel)"):
             st.markdown(
                 textwrap.dedent(
@@ -1123,21 +1205,30 @@ def _render_account_page(venues: List[Venue]) -> None:
             )
         return
 
-    top_u1, top_u2 = st.columns([3, 1])
-    with top_u1:
-        st.success(f"👤 Oturum Açık: **{user['full_name']}** ({user['email']})")
-    with top_u2:
-        if st.button("🚪 Çıkış Yap", width="stretch"):
-            st.session_state["auth_user"] = None
-            st.session_state["active_trip_id"] = None
-            st.rerun()
+    trips = storage.list_saved_trips(user)
+    with st.container(border=True):
+        top_u1, top_u2, top_u3 = st.columns([2.8, 1.3, 1.0])
+        with top_u1:
+            st.markdown(
+                f"### 👤 {user['full_name']}\n"
+                f"📧 `{user['email']}` • 🗂️ **{len(trips)} Kayıtlı Gezi Planı** • ✅ *Kalıcı Oturum Aktif*"
+            )
+        with top_u2:
+            if st.button("🧭 Yeni Rota Planla", width="stretch"):
+                st.session_state["active_page"] = "planner"
+                st.rerun()
+        with top_u3:
+            if st.button("🚪 Çıkış Yap", width="stretch"):
+                storage.logout_user()
+                st.session_state["auth_user"] = None
+                st.session_state["active_trip_id"] = None
+                st.rerun()
 
     st.divider()
     st.markdown("### 📂 Kayıtlı Gezi Planlarım")
-    trips = storage.list_saved_trips(user)
     if not trips:
         st.info(
-            "Henüz kayıtlı bir gezi planınız yok. **Rota Planlayıcı** sayfasından bir rota oluşturup **Planı Hesabıma Kaydet** butonunu kullanabilirsiniz."
+            "Henüz kayıtlı bir gezi planınız yok. **Rota Planlayıcı** sayfasından bir rota oluşturup **💾 Beğendiğim Planı Kaydet** butonunu kullanabilirsiniz."
         )
         return
 
@@ -1149,21 +1240,7 @@ def _render_account_page(venues: List[Venue]) -> None:
                 st.caption(f"{t['summary']} • Son Güncelleme: {t['updated_at']}")
             with c_open:
                 if st.button("📂 Planı Aç", key=f"open_trip_{t['id']}", type="primary", width="stretch"):
-                    loaded_plans = t["day_plans"]
-                    inferred_mode = (
-                        "driving"
-                        if loaded_plans
-                        and "araç (araba)" in str(loaded_plans[0].get("summary_text", "")).lower()
-                        else "walking"
-                    )
-                    st.session_state["travel_mode"] = inferred_mode
-                    st.session_state["day_plans"] = loaded_plans
-                    st.session_state["current_plan"] = loaded_plans[0] if loaded_plans else None
-                    st.session_state["day2_plan"] = loaded_plans[1] if len(loaded_plans) >= 2 else None
-                    st.session_state["completed_stop_ids"] = list(t.get("completed_stop_ids", []))
-                    st.session_state["removed_stop_ids"] = []
-                    st.session_state["active_trip_id"] = t["id"]
-                    st.session_state["active_page"] = "planner"
+                    _load_saved_trip_into_state(t)
                     st.rerun()
             with c_del:
                 if st.button("🗑️ Sil", key=f"del_trip_{t['id']}", width="stretch"):
@@ -1701,6 +1778,40 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
     daily_limit = int(os.getenv("DAILY_LIMIT_PER_SESSION", "15"))
 
     with st.sidebar:
+        st.header("👤 Profilim & Kayıtlı Geziler")
+        sb_user = st.session_state.get("auth_user")
+        if sb_user:
+            sb_trips = storage.list_saved_trips(sb_user)
+            st.success(f"**{sb_user['full_name']}**\n\n`{sb_user['email']}`")
+            sb_c1, sb_c2 = st.columns([1.4, 1.0])
+            if sb_c1.button(f"📂 Gezilerim ({len(sb_trips)})", key="sb_open_prof", width="stretch"):
+                st.session_state["active_page"] = "account"
+                st.rerun()
+            if sb_c2.button("🚪 Çıkış", key="sb_logout", width="stretch"):
+                storage.logout_user()
+                st.session_state["auth_user"] = None
+                st.session_state["active_trip_id"] = None
+                st.rerun()
+        else:
+            local_profs = storage.list_local_users()
+            if local_profs:
+                first_p = local_profs[0]
+                if st.button(
+                    f"⚡ {first_p['full_name']} Profiline Gir",
+                    key="sb_quick_login",
+                    type="primary",
+                    width="stretch",
+                ):
+                    ok, msg, logged_u = storage.quick_login_by_id(first_p["id"])
+                    if ok and logged_u:
+                        st.session_state["auth_user"] = logged_u
+                        st.toast(msg)
+                        st.rerun()
+            if st.button("🔑 Hesap & Giriş Ekranı", key="sb_go_acc", width="stretch"):
+                st.session_state["active_page"] = "account"
+                st.rerun()
+
+        st.divider()
         st.header("⚙️ Sistem Ayarları & Kota")
         default_mock = os.getenv("USE_MOCK_UI", "false").lower() == "true"
         use_mock = st.toggle(
@@ -1955,7 +2066,16 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 if st.button("💾 Beğendiğim Planı Kaydet", key="btn_save_trip", type="primary", width="stretch"):
                     user = st.session_state.get("auth_user")
                     if not user:
-                        st.warning("Planı kaydetmek için üst menüdeki **💾 Kayıtlı Geziler & Hesap** sekmesinden ücretsiz hesap açın veya giriş yapın.")
+                        local_profs = storage.list_local_users()
+                        if local_profs:
+                            ok_l, _, auto_u = storage.quick_login_by_id(local_profs[0]["id"])
+                            if ok_l and auto_u:
+                                st.session_state["auth_user"] = auto_u
+                                user = auto_u
+                    if not user:
+                        st.warning(
+                            "Planı kaydetmek için üst menüdeki **👤 Profilim & Kayıtlı Geziler** sekmesinden ücretsiz hesap açın veya giriş yapın."
+                        )
                     else:
                         ok, msg, saved_id = storage.save_trip(
                             user=user,
@@ -2106,7 +2226,8 @@ def main() -> None:
     st.session_state.setdefault("day2_plan", None)
     st.session_state.setdefault("removed_stop_ids", [])
     st.session_state.setdefault("completed_stop_ids", [])
-    st.session_state.setdefault("auth_user", None)
+    if "auth_user" not in st.session_state:
+        st.session_state["auth_user"] = storage.get_active_session_user()
     st.session_state.setdefault("active_trip_id", None)
     st.session_state.setdefault("active_page", "planner")
     st.session_state.setdefault("travel_mode", "walking")

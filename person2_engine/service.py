@@ -71,13 +71,21 @@ def plan_trip(user_text: str, overrides: Optional[Dict[str, object]] = None) -> 
 
     # 2 Günlük / Çoklu Günlük Planlama Desteği
     if parsed.num_days == 2:
-        # Mekanları iki güne dengeli paylaştır (Müzeler/Batı koridoru 1. gün, Konaklar/Camiler/Sahil 2. gün)
         all_pois = list(parsed.selected_venue_ids)
+        # 2 günlük dolu bir hafta sonu turu için diğer doğrulanmış açık POI'leri de havuza ekle
+        available_poi_ids = [
+            v.id for v in venues
+            if not v.is_restaurant and v.category != "baslangic_bitis"
+        ]
+        for pid in available_poi_ids:
+            if pid not in all_pois:
+                all_pois.append(pid)
+
         half = (len(all_pois) + 1) // 2
         day1_pois = all_pois[:half]
         day2_pois = all_pois[half:]
 
-        day1_req = parsed.model_copy(update={"selected_venue_ids": day1_pois, "num_days": 1})
+        day1_req = parsed.model_copy(update={"selected_venue_ids": day1_pois, "num_days": 2})
         calculated = build_schedule(day1_req, venues_by_id, matrix, custom_durations)
 
         next_day_map = {
@@ -98,6 +106,11 @@ def plan_trip(user_text: str, overrides: Optional[Dict[str, object]] = None) -> 
             }
         )
         day2_calculated = build_schedule(day2_req, venues_by_id, matrix, custom_durations)
+        # 2. gün durak açıklamalarını bağla
+        for s in day2_calculated.stops:
+            if s.venue_id in venues_by_id:
+                s.explanation = venues_by_id[s.venue_id].description_short
+                s.source_url = venues_by_id[s.venue_id].source_url
         calculated.day2_plan = day2_calculated
     else:
         calculated = build_schedule(parsed, venues_by_id, matrix, custom_durations)

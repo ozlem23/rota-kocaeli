@@ -6,6 +6,12 @@ from pathlib import Path
 from contracts.models import ParsedRequest, Venue
 from person2_engine.optimizer import rank_candidate_orders
 from person2_engine.scheduler import build_schedule, hhmm_to_min
+from person2_engine.service import (
+    plan_multi_day_trip,
+    plan_trip,
+    recalculate_from_midday,
+    replan_with_feedback,
+)
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -86,4 +92,57 @@ def test_custom_stay_duration_changes_schedule():
     saat_cus = next(s for s in plan_custom.stops if s.venue_id == "saat_kulesi")
     assert saat_def.stay_min == 15
     assert saat_cus.stay_min == 45
+
+
+def test_multi_day_accommodation_loop_and_no_duplicates():
+    plans = plan_multi_day_trip(
+        "Cuma, Cumartesi ve Pazar 3 günlük kültür gezisi yapmak istiyorum.",
+        overrides={"num_days": 3, "accommodation_id": "hotel_sekapark"},
+    )
+    assert len(plans) == 3
+    seen_pois = []
+    for day_plan in plans:
+        assert day_plan.stops[0].venue_id == "hotel_sekapark"
+        assert day_plan.stops[-1].venue_id == "hotel_sekapark"
+        pois = [
+            s.venue_id
+            for s in day_plan.stops
+            if not s.is_start and not s.is_end and not s.is_lunch
+        ]
+        assert len(pois) >= 1
+        seen_pois.extend(pois)
+    assert len(seen_pois) == len(set(seen_pois))
+
+
+def test_replan_with_feedback_fewer_museums_more_parks():
+    initial = plan_trip(
+        "Cumartesi 09:30 - 17:00 arası müzeleri gezmek istiyorum."
+    )
+    alts = replan_with_feedback(
+        initial.parsed_request.model_dump(),
+        "daha az müze, daha çok park",
+    )
+    assert len(alts) == 1
+    poi_ids = {s.venue_id for s in alts[0].stops}
+    assert "sekapark_sahil" in poi_ids
+
+
+def test_recalculate_from_midday_excludes_completed():
+    initial = plan_trip(
+        "Cumartesi 09:30 - 17:30 arası müzeleri ve tarihi yapıları görmek istiyorum."
+    )
+    done_ids = ["arkeoloji_muzesi", "seka_kagit_muzesi", "rest_kultur_tepesi"]
+    updated = recalculate_from_midday(
+        parsed_request_dict=initial.parsed_request.model_dump(),
+        current_venue_id="saat_kulesi",
+        current_time="13:30",
+        completed_venue_ids=done_ids,
+    )
+    assert updated.stops[0].venue_id == "saat_kulesi"
+    assert updated.stops[0].arrival_time == "13:30"
+    stop_ids = {s.venue_id for s in updated.stops}
+    assert "arkeoloji_muzesi" not in stop_ids
+    assert "seka_kagit_muzesi" not in stop_ids
+    assert not any(s.is_lunch for s in updated.stops)
+
 

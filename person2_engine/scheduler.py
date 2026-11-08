@@ -182,6 +182,7 @@ def _simulate_order(
                 max_walk_min=10,
                 limit=3,
             )
+            has_any_penalty = 0 if nearby else 1
             pref_penalty = 0 if nearby else 2
             if nearby and parsed.food_preference:
                 pref_toks = [_norm_tr(t) for t in parsed.food_preference.split() if len(t) >= 3]
@@ -190,12 +191,12 @@ def _simulate_order(
                     for r in nearby
                 )
                 pref_penalty = 0 if has_match else 1
-            scored_candidates.append((in_window_rank, pref_penalty, time_dist, idx))
+            scored_candidates.append((has_any_penalty, in_window_rank, pref_penalty, time_dist, idx))
             prev_probe = vid
 
         if scored_candidates:
-            scored_candidates.sort(key=lambda x: (x[0], x[1], x[2]))
-            lunch_after_idx = scored_candidates[0][3]
+            scored_candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
+            lunch_after_idx = scored_candidates[0][4]
         else:
             lunch_after_idx = -1
 

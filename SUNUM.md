@@ -73,6 +73,8 @@
 1. **Cuma / Cumartesi Regex Çakışması:** Ajan Türkçe gün eşleştirmesi yaparken `"cumartesi"` kelimesinin başında `"cuma"` alt dizgisini yakaladığı için Cumartesi gününü Cuma olarak algıladı ve Pazartesi kapalı olan mekanları Cumartesi'ye denk getirdi. (Kelime sınırı `\b` eklenerek düzeltildi).
 2. **Olumsuzluk Algısı Hatası:** Kullanıcı *"yemek olmasın"* yazdığında, ajan `"yemek"` kelimesini görüp öğle molasını zorunlu kıldı. (Olumsuz kalıplar genişletilerek çözüldü).
 3. **Erken Öğle Molası ve Kapalı Restoran:** Ziyaretçi az durak gezip saat 10:57'de sahile vardığında, sahil restoranı 11:30'da açıldığı için ajan *"uygun restoran bulunamadı"* uyarısı verdi. Rota motoruna öğle yemeği penceresine (12:00) kadar bekleme kuralı eklenerek sorun giderildi.
+4. **Markdown HTML Girinti Hatası:** Mekan kartlarını oluştururken f-string içinde 4 boşlukluk girinti bırakılması sonucu Streamlit CommonMark motoru HTML etiketlerini (`</div>`, `<a>`) kod bloğu zannedip ekrana ham metin olarak bastı. (HTML blokları girintisiz ve temiz hale getirilerek çözüldü).
+5. **Çoklu Gün Kısıtı:** İstek şeması başta tek günle sınırlandırıldığı için model iki günlük planlama yapamadı. Şemaya `num_days` ve `plan_days` alanları eklenip duraklar iki güne dengeli dağıtılarak (1. gün müzeler, 2. gün konak ve camiler) sorun çözüldü.
 
 ---
 

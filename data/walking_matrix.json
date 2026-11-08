@@ -1,0 +1,1058 @@
+{
+  "eski_gar": {
+    "eski_gar": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 4,
+      "distance_m": 300
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 12,
+      "distance_m": 900
+    },
+    "saat_kulesi": {
+      "duration_min": 6,
+      "distance_m": 450
+    },
+    "kasri_humayun": {
+      "duration_min": 5,
+      "distance_m": 375
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 10,
+      "distance_m": 750
+    },
+    "fevziye_camii": {
+      "duration_min": 6,
+      "distance_m": 480
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 11,
+      "distance_m": 838
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 12,
+      "distance_m": 896
+    },
+    "sekapark_sahil": {
+      "duration_min": 17,
+      "distance_m": 1312
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 5,
+      "distance_m": 401
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 8,
+      "distance_m": 573
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 3,
+      "distance_m": 217
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 8,
+      "distance_m": 575
+    },
+    "rest_seka_balik": {
+      "duration_min": 15,
+      "distance_m": 1149
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 2,
+      "distance_m": 173
+    }
+  },
+  "arkeoloji_muzesi": {
+    "eski_gar": {
+      "duration_min": 4,
+      "distance_m": 300
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 9,
+      "distance_m": 675
+    },
+    "saat_kulesi": {
+      "duration_min": 7,
+      "distance_m": 525
+    },
+    "kasri_humayun": {
+      "duration_min": 6,
+      "distance_m": 450
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 11,
+      "distance_m": 825
+    },
+    "fevziye_camii": {
+      "duration_min": 12,
+      "distance_m": 893
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 6,
+      "distance_m": 432
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 17,
+      "distance_m": 1296
+    },
+    "sekapark_sahil": {
+      "duration_min": 12,
+      "distance_m": 907
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 11,
+      "distance_m": 815
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 13,
+      "distance_m": 983
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 8,
+      "distance_m": 631
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 5,
+      "distance_m": 343
+    },
+    "rest_seka_balik": {
+      "duration_min": 10,
+      "distance_m": 743
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 4,
+      "distance_m": 318
+    }
+  },
+  "seka_kagit_muzesi": {
+    "eski_gar": {
+      "duration_min": 12,
+      "distance_m": 900
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 9,
+      "distance_m": 675
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "saat_kulesi": {
+      "duration_min": 15,
+      "distance_m": 1125
+    },
+    "kasri_humayun": {
+      "duration_min": 15,
+      "distance_m": 1125
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 19,
+      "distance_m": 1425
+    },
+    "fevziye_camii": {
+      "duration_min": 29,
+      "distance_m": 2161
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 12,
+      "distance_m": 874
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 34,
+      "distance_m": 2556
+    },
+    "sekapark_sahil": {
+      "duration_min": 7,
+      "distance_m": 505
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 28,
+      "distance_m": 2084
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 30,
+      "distance_m": 2251
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 25,
+      "distance_m": 1900
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 17,
+      "distance_m": 1245
+    },
+    "rest_seka_balik": {
+      "duration_min": 8,
+      "distance_m": 614
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 21,
+      "distance_m": 1560
+    }
+  },
+  "saat_kulesi": {
+    "eski_gar": {
+      "duration_min": 6,
+      "distance_m": 450
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 7,
+      "distance_m": 525
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 15,
+      "distance_m": 1125
+    },
+    "saat_kulesi": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "kasri_humayun": {
+      "duration_min": 4,
+      "distance_m": 300
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 9,
+      "distance_m": 675
+    },
+    "fevziye_camii": {
+      "duration_min": 15,
+      "distance_m": 1138
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 7,
+      "distance_m": 538
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 21,
+      "distance_m": 1569
+    },
+    "sekapark_sahil": {
+      "duration_min": 12,
+      "distance_m": 927
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 14,
+      "distance_m": 1049
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 16,
+      "distance_m": 1237
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 12,
+      "distance_m": 887
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 2,
+      "distance_m": 119
+    },
+    "rest_seka_balik": {
+      "duration_min": 10,
+      "distance_m": 780
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 7,
+      "distance_m": 516
+    }
+  },
+  "kasri_humayun": {
+    "eski_gar": {
+      "duration_min": 5,
+      "distance_m": 375
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 6,
+      "distance_m": 450
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 15,
+      "distance_m": 1125
+    },
+    "saat_kulesi": {
+      "duration_min": 4,
+      "distance_m": 300
+    },
+    "kasri_humayun": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 7,
+      "distance_m": 525
+    },
+    "fevziye_camii": {
+      "duration_min": 12,
+      "distance_m": 898
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 8,
+      "distance_m": 594
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 18,
+      "distance_m": 1328
+    },
+    "sekapark_sahil": {
+      "duration_min": 14,
+      "distance_m": 1047
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 11,
+      "distance_m": 810
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 13,
+      "distance_m": 997
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 9,
+      "distance_m": 646
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 2,
+      "distance_m": 132
+    },
+    "rest_seka_balik": {
+      "duration_min": 12,
+      "distance_m": 888
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 4,
+      "distance_m": 275
+    }
+  },
+  "sirri_pasa_konagi": {
+    "eski_gar": {
+      "duration_min": 10,
+      "distance_m": 750
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 11,
+      "distance_m": 825
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 19,
+      "distance_m": 1425
+    },
+    "saat_kulesi": {
+      "duration_min": 9,
+      "distance_m": 675
+    },
+    "kasri_humayun": {
+      "duration_min": 7,
+      "distance_m": 525
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "fevziye_camii": {
+      "duration_min": 13,
+      "distance_m": 938
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 11,
+      "distance_m": 839
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 18,
+      "distance_m": 1371
+    },
+    "sekapark_sahil": {
+      "duration_min": 17,
+      "distance_m": 1263
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 11,
+      "distance_m": 847
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 14,
+      "distance_m": 1038
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 10,
+      "distance_m": 725
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 3,
+      "distance_m": 255
+    },
+    "rest_seka_balik": {
+      "duration_min": 15,
+      "distance_m": 1111
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 5,
+      "distance_m": 411
+    }
+  },
+  "fevziye_camii": {
+    "eski_gar": {
+      "duration_min": 6,
+      "distance_m": 480
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 12,
+      "distance_m": 893
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 29,
+      "distance_m": 2161
+    },
+    "saat_kulesi": {
+      "duration_min": 15,
+      "distance_m": 1138
+    },
+    "kasri_humayun": {
+      "duration_min": 12,
+      "distance_m": 898
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 13,
+      "distance_m": 938
+    },
+    "fevziye_camii": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 17,
+      "distance_m": 1307
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 6,
+      "distance_m": 436
+    },
+    "sekapark_sahil": {
+      "duration_min": 24,
+      "distance_m": 1775
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 1,
+      "distance_m": 91
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 1,
+      "distance_m": 101
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 3,
+      "distance_m": 262
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 14,
+      "distance_m": 1021
+    },
+    "rest_seka_balik": {
+      "duration_min": 22,
+      "distance_m": 1613
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 8,
+      "distance_m": 625
+    }
+  },
+  "gayret_gemi_muzesi": {
+    "eski_gar": {
+      "duration_min": 11,
+      "distance_m": 838
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 6,
+      "distance_m": 432
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 12,
+      "distance_m": 874
+    },
+    "saat_kulesi": {
+      "duration_min": 7,
+      "distance_m": 538
+    },
+    "kasri_humayun": {
+      "duration_min": 8,
+      "distance_m": 594
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 11,
+      "distance_m": 839
+    },
+    "fevziye_camii": {
+      "duration_min": 17,
+      "distance_m": 1307
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 22,
+      "distance_m": 1687
+    },
+    "sekapark_sahil": {
+      "duration_min": 6,
+      "distance_m": 476
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 16,
+      "distance_m": 1235
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 19,
+      "distance_m": 1391
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 14,
+      "distance_m": 1048
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 8,
+      "distance_m": 586
+    },
+    "rest_seka_balik": {
+      "duration_min": 4,
+      "distance_m": 312
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 10,
+      "distance_m": 748
+    }
+  },
+  "yeni_cuma_camii": {
+    "eski_gar": {
+      "duration_min": 12,
+      "distance_m": 896
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 17,
+      "distance_m": 1296
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 34,
+      "distance_m": 2556
+    },
+    "saat_kulesi": {
+      "duration_min": 21,
+      "distance_m": 1569
+    },
+    "kasri_humayun": {
+      "duration_min": 18,
+      "distance_m": 1328
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 18,
+      "distance_m": 1371
+    },
+    "fevziye_camii": {
+      "duration_min": 6,
+      "distance_m": 436
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 22,
+      "distance_m": 1687
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "sekapark_sahil": {
+      "duration_min": 29,
+      "distance_m": 2139
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 7,
+      "distance_m": 526
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 4,
+      "distance_m": 334
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 9,
+      "distance_m": 683
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 19,
+      "distance_m": 1454
+    },
+    "rest_seka_balik": {
+      "duration_min": 26,
+      "distance_m": 1983
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 14,
+      "distance_m": 1053
+    }
+  },
+  "sekapark_sahil": {
+    "eski_gar": {
+      "duration_min": 17,
+      "distance_m": 1312
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 12,
+      "distance_m": 907
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 7,
+      "distance_m": 505
+    },
+    "saat_kulesi": {
+      "duration_min": 12,
+      "distance_m": 927
+    },
+    "kasri_humayun": {
+      "duration_min": 14,
+      "distance_m": 1047
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 17,
+      "distance_m": 1263
+    },
+    "fevziye_camii": {
+      "duration_min": 24,
+      "distance_m": 1775
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 6,
+      "distance_m": 476
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 29,
+      "distance_m": 2139
+    },
+    "sekapark_sahil": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 23,
+      "distance_m": 1706
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 25,
+      "distance_m": 1855
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 20,
+      "distance_m": 1519
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 13,
+      "distance_m": 1009
+    },
+    "rest_seka_balik": {
+      "duration_min": 2,
+      "distance_m": 164
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 16,
+      "distance_m": 1223
+    }
+  },
+  "rest_fevziye_kofte": {
+    "eski_gar": {
+      "duration_min": 5,
+      "distance_m": 401
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 11,
+      "distance_m": 815
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 28,
+      "distance_m": 2084
+    },
+    "saat_kulesi": {
+      "duration_min": 14,
+      "distance_m": 1049
+    },
+    "kasri_humayun": {
+      "duration_min": 11,
+      "distance_m": 810
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 11,
+      "distance_m": 847
+    },
+    "fevziye_camii": {
+      "duration_min": 1,
+      "distance_m": 91
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 16,
+      "distance_m": 1235
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 7,
+      "distance_m": 526
+    },
+    "sekapark_sahil": {
+      "duration_min": 23,
+      "distance_m": 1706
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 3,
+      "distance_m": 192
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 2,
+      "distance_m": 187
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 12,
+      "distance_m": 932
+    },
+    "rest_seka_balik": {
+      "duration_min": 21,
+      "distance_m": 1543
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 7,
+      "distance_m": 539
+    }
+  },
+  "rest_yuruyus_pide": {
+    "eski_gar": {
+      "duration_min": 8,
+      "distance_m": 573
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 13,
+      "distance_m": 983
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 30,
+      "distance_m": 2251
+    },
+    "saat_kulesi": {
+      "duration_min": 16,
+      "distance_m": 1237
+    },
+    "kasri_humayun": {
+      "duration_min": 13,
+      "distance_m": 997
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 14,
+      "distance_m": 1038
+    },
+    "fevziye_camii": {
+      "duration_min": 1,
+      "distance_m": 101
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 19,
+      "distance_m": 1391
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 4,
+      "distance_m": 334
+    },
+    "sekapark_sahil": {
+      "duration_min": 25,
+      "distance_m": 1855
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 3,
+      "distance_m": 192
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 5,
+      "distance_m": 356
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 15,
+      "distance_m": 1121
+    },
+    "rest_seka_balik": {
+      "duration_min": 23,
+      "distance_m": 1695
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 10,
+      "distance_m": 724
+    }
+  },
+  "rest_cumhuriyet_ev": {
+    "eski_gar": {
+      "duration_min": 3,
+      "distance_m": 217
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 8,
+      "distance_m": 631
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 25,
+      "distance_m": 1900
+    },
+    "saat_kulesi": {
+      "duration_min": 12,
+      "distance_m": 887
+    },
+    "kasri_humayun": {
+      "duration_min": 9,
+      "distance_m": 646
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 10,
+      "distance_m": 725
+    },
+    "fevziye_camii": {
+      "duration_min": 3,
+      "distance_m": 262
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 14,
+      "distance_m": 1048
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 9,
+      "distance_m": 683
+    },
+    "sekapark_sahil": {
+      "duration_min": 20,
+      "distance_m": 1519
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 2,
+      "distance_m": 187
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 5,
+      "distance_m": 356
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 10,
+      "distance_m": 774
+    },
+    "rest_seka_balik": {
+      "duration_min": 18,
+      "distance_m": 1357
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 5,
+      "distance_m": 371
+    }
+  },
+  "rest_kultur_tepesi": {
+    "eski_gar": {
+      "duration_min": 8,
+      "distance_m": 575
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 5,
+      "distance_m": 343
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 17,
+      "distance_m": 1245
+    },
+    "saat_kulesi": {
+      "duration_min": 2,
+      "distance_m": 119
+    },
+    "kasri_humayun": {
+      "duration_min": 2,
+      "distance_m": 132
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 3,
+      "distance_m": 255
+    },
+    "fevziye_camii": {
+      "duration_min": 14,
+      "distance_m": 1021
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 8,
+      "distance_m": 586
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 19,
+      "distance_m": 1454
+    },
+    "sekapark_sahil": {
+      "duration_min": 13,
+      "distance_m": 1009
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 12,
+      "distance_m": 932
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 15,
+      "distance_m": 1121
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 10,
+      "distance_m": 774
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "rest_seka_balik": {
+      "duration_min": 11,
+      "distance_m": 856
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 5,
+      "distance_m": 404
+    }
+  },
+  "rest_seka_balik": {
+    "eski_gar": {
+      "duration_min": 15,
+      "distance_m": 1149
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 10,
+      "distance_m": 743
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 8,
+      "distance_m": 614
+    },
+    "saat_kulesi": {
+      "duration_min": 10,
+      "distance_m": 780
+    },
+    "kasri_humayun": {
+      "duration_min": 12,
+      "distance_m": 888
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 15,
+      "distance_m": 1111
+    },
+    "fevziye_camii": {
+      "duration_min": 22,
+      "distance_m": 1613
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 4,
+      "distance_m": 312
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 26,
+      "distance_m": 1983
+    },
+    "sekapark_sahil": {
+      "duration_min": 2,
+      "distance_m": 164
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 21,
+      "distance_m": 1543
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 23,
+      "distance_m": 1695
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 18,
+      "distance_m": 1357
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 11,
+      "distance_m": 856
+    },
+    "rest_seka_balik": {
+      "duration_min": 0,
+      "distance_m": 0
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 14,
+      "distance_m": 1059
+    }
+  },
+  "rest_izmit_iskender": {
+    "eski_gar": {
+      "duration_min": 2,
+      "distance_m": 173
+    },
+    "arkeoloji_muzesi": {
+      "duration_min": 4,
+      "distance_m": 318
+    },
+    "seka_kagit_muzesi": {
+      "duration_min": 21,
+      "distance_m": 1560
+    },
+    "saat_kulesi": {
+      "duration_min": 7,
+      "distance_m": 516
+    },
+    "kasri_humayun": {
+      "duration_min": 4,
+      "distance_m": 275
+    },
+    "sirri_pasa_konagi": {
+      "duration_min": 5,
+      "distance_m": 411
+    },
+    "fevziye_camii": {
+      "duration_min": 8,
+      "distance_m": 625
+    },
+    "gayret_gemi_muzesi": {
+      "duration_min": 10,
+      "distance_m": 748
+    },
+    "yeni_cuma_camii": {
+      "duration_min": 14,
+      "distance_m": 1053
+    },
+    "sekapark_sahil": {
+      "duration_min": 16,
+      "distance_m": 1223
+    },
+    "rest_fevziye_kofte": {
+      "duration_min": 7,
+      "distance_m": 539
+    },
+    "rest_yuruyus_pide": {
+      "duration_min": 10,
+      "distance_m": 724
+    },
+    "rest_cumhuriyet_ev": {
+      "duration_min": 5,
+      "distance_m": 371
+    },
+    "rest_kultur_tepesi": {
+      "duration_min": 5,
+      "distance_m": 404
+    },
+    "rest_seka_balik": {
+      "duration_min": 14,
+      "distance_m": 1059
+    },
+    "rest_izmit_iskender": {
+      "duration_min": 0,
+      "distance_m": 0
+    }
+  }
+}

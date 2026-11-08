@@ -1,0 +1,103 @@
+[
+  {
+    "id": "t01",
+    "prompt": "Cumartesi sabah 09.30'da İzmit Eski Tren Garı'dayım, 17.00'de oraya döneceğim. Müzeleri ve tarihi yapıları görmek istiyorum. Öğle yemeği molası olsun.",
+    "expected": {"day_of_week": "Sat", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "17:00", "want_lunch": true}
+  },
+  {
+    "id": "t02",
+    "prompt": "Pazartesi günü 09:30 - 16:30 arası İzmit Eski Gar'dan başlayıp müzeleri ve konakları gezmek istiyorum.",
+    "expected": {"day_of_week": "Mon", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "16:30", "want_lunch": true}
+  },
+  {
+    "id": "t03",
+    "prompt": "Cumartesi 10:00'da İzmit Saat Kulesi'nden başlayıp 16:00'da orada bitireceğim. Öğlen köfte yemek istiyorum.",
+    "expected": {"day_of_week": "Sat", "start_id": "saat_kulesi", "end_id": "saat_kulesi", "end_time": "16:00", "want_lunch": true}
+  },
+  {
+    "id": "t04",
+    "prompt": "Pazar 09:30 ile 13:00 arası kısa bir tarihi yapı turu yapacağım, Eski Gar başlangıç ve bitiş.",
+    "expected": {"day_of_week": "Sun", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "13:00", "want_lunch": true}
+  },
+  {
+    "id": "t05",
+    "prompt": "Salı 10:00-17:30 arası Seka Park ve sahil tarafında yürüyüş yapıp balık yemek istiyorum.",
+    "expected": {"day_of_week": "Tue", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "17:30", "want_lunch": true}
+  },
+  {
+    "id": "t06",
+    "prompt": "Çarşamba 09:30'dan 15:00'e kadar Fevziye Camii ve Yeni Cuma Camii gibi Osmanlı camilerini görmek istiyorum.",
+    "expected": {"day_of_week": "Wed", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "15:00", "want_lunch": true}
+  },
+  {
+    "id": "t07",
+    "prompt": "Perşembe sabah 09:00'da Eski Gar'dayım, öğle yemeği istemiyorum, 12:30'da döneceğim. Anıt ve konakları gezdir.",
+    "expected": {"day_of_week": "Thu", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "12:30", "want_lunch": false}
+  },
+  {
+    "id": "t08",
+    "prompt": "Cuma 10:30 - 17:00 arası tüm müzeleri gezmek istiyorum, öğlen pide veya kebap olsun.",
+    "expected": {"day_of_week": "Fri", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "17:00", "want_lunch": true}
+  },
+  {
+    "id": "t09",
+    "prompt": "Cumartesi 09:30-16:00 arası vejetaryen ev yemekleri yiyebileceğim bir kültür gezisi çıkar.",
+    "expected": {"day_of_week": "Sat", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "16:00", "want_lunch": true}
+  },
+  {
+    "id": "t10",
+    "prompt": "Pazar 11:00 - 16:30 arası SEKA Kağıt Müzesi'nden başlayıp Fevziye Camii'nde biten bir rota oluştur.",
+    "expected": {"day_of_week": "Sun", "start_id": "seka_kagit_muzesi", "end_id": "fevziye_camii", "end_time": "16:30", "want_lunch": true}
+  },
+  {
+    "id": "t11",
+    "prompt": "Cumartesi 15:30 ile 18:00 arası müze ve park gezisi istiyorum, yemek olmasın.",
+    "expected": {"day_of_week": "Sat", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "18:00", "want_lunch": false}
+  },
+  {
+    "id": "t12",
+    "prompt": "Salı 09:30 - 17:00 arası İzmit'te Eyfel Kulesi ve Ayasofya'yı görmek istiyorum, arada müzelere de uğrayalım.",
+    "expected": {"day_of_week": "Tue", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "17:00", "want_lunch": true}
+  },
+  {
+    "id": "t13",
+    "prompt": "Cumartesi 09:30-17:00 arası metro ve otobüs kullanarak Kocaeli turu çıkar.",
+    "expected": {"day_of_week": "Sat", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "17:00", "want_lunch": true}
+  },
+  {
+    "id": "t14",
+    "prompt": "Çarşamba 09:00-14:00 arası sadece Sırrı Paşa Konağı, Kasr-ı Hümayun ve Saat Kulesi'ni gezmek istiyorum.",
+    "expected": {"day_of_week": "Wed", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "14:00", "want_lunch": true}
+  },
+  {
+    "id": "t15",
+    "prompt": "Pazar 10:00 - 17:00 arası denizcilik ve sanayi tarihi müzelerini görmek istiyorum.",
+    "expected": {"day_of_week": "Sun", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "17:00", "want_lunch": true}
+  },
+  {
+    "id": "t16",
+    "prompt": "Perşembe 09:30 - 11:30 arası çok hızlı bir yürüyüş planı, yemek olmasın.",
+    "expected": {"day_of_week": "Thu", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "11:30", "want_lunch": false}
+  },
+  {
+    "id": "t17",
+    "prompt": "Cumartesi 11:30 - 17:00 arası Kasr-ı Hümayun'dan başlayıp Eski Gar'a dönmek istiyorum, öğlen kafe veya kahvaltı tarzı yer olsun.",
+    "expected": {"day_of_week": "Sat", "start_id": "kasri_humayun", "end_id": "eski_gar", "end_time": "17:00", "want_lunch": true}
+  },
+  {
+    "id": "t18",
+    "prompt": "Pazartesi 10:00-15:00 arası Saat Kulesi ve Fevziye Camii çevresinde yürüyüş ve köfte molası.",
+    "expected": {"day_of_week": "Mon", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "15:00", "want_lunch": true}
+  },
+  {
+    "id": "t19",
+    "prompt": "Cuma 09:30 - 18:00 arası kapsamlı bir Kocaeli tarih, cami ve park yürüyüşü.",
+    "expected": {"day_of_week": "Fri", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "18:00", "want_lunch": true}
+  },
+  {
+    "id": "t20",
+    "prompt": "Cumartesi 09:30 - 17:00 arası İzmit Eski Tren Garı başlangıçlı en az yürüyüşlü kültür gezisi.",
+    "expected": {"day_of_week": "Sat", "start_id": "eski_gar", "end_id": "eski_gar", "end_time": "17:00", "want_lunch": true}
+  }
+]
+

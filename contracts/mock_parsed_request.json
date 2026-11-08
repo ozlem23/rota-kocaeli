@@ -1,0 +1,24 @@
+{
+  "city": "Kocaeli",
+  "day_of_week": "Sat",
+  "start_venue_id": "eski_gar",
+  "end_venue_id": "eski_gar",
+  "start_time": "09:30",
+  "end_time": "17:00",
+  "interests": ["müze", "tarihi yapı"],
+  "want_lunch": true,
+  "lunch_window_start": "12:00",
+  "lunch_window_end": "14:00",
+  "lunch_duration_min": 60,
+  "food_preference": "köfte veya ev yemekleri",
+  "selected_venue_ids": [
+    "arkeoloji_muzesi",
+    "seka_kagit_muzesi",
+    "saat_kulesi",
+    "fevziye_camii",
+    "sirri_pasa_konagi",
+    "kasri_humayun"
+  ],
+  "unmatched_notes": []
+}
+

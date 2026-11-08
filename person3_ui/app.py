@@ -252,21 +252,42 @@ def _build_pydeck_map(
     route_color: Optional[List[int]] = None,
     day_prefix: str = "",
     travel_mode: str = "walking",
+    venues_by_id: Optional[Dict[str, Venue]] = None,
 ) -> pdk.Deck:
     stops = plan.get("stops", [])
-    line_color = route_color if route_color is not None else [37, 99, 235, 240]
-    leg_word = "Araç" if travel_mode == "driving" else "Yürüme"
+    n_stops = len(stops)
+    if route_color is not None:
+        line_color = route_color if travel_mode != "driving" else [225, 29, 72, 240]
+    else:
+        line_color = [225, 29, 72, 240] if travel_mode == "driving" else [37, 99, 235, 240]
+    leg_word = "Araçla" if travel_mode == "driving" else "Yürüyerek"
     completed_ids = set(st.session_state.get("completed_stop_ids", []))
     point_rows: List[Dict[str, Any]] = []
 
     for s in stops:
+        if s.get("is_end") and n_stops >= 2 and s["venue_id"] == stops[0]["venue_id"]:
+            # Başlangıç ve bitiş aynı nokta ise 0 numaralı başlangıç rozetinde birleştir
+            continue
         theme = _get_theme(s.get("category", ""))
         if s["venue_id"] in completed_ids and not s.get("is_start") and not s.get("is_end"):
-            color = [16, 185, 129, 245]
+            color = [16, 185, 129, 250]
         else:
             color = theme["map_rgb"]
 
         pin_label = f"{day_prefix}{s['order']}" if day_prefix else str(s["order"])
+        if s.get("is_start") and n_stops >= 2 and stops[-1]["venue_id"] == s["venue_id"]:
+            time_info = f"Başlangıç: {s['arrival_time']} • Dönüş: {stops[-1]['arrival_time']}"
+        else:
+            time_info = f"{s['arrival_time']} – {s['departure_time']}"
+
+        v_obj = venues_by_id.get(s["venue_id"]) if venues_by_id else None
+        img_url = getattr(v_obj, "image_url", "") if v_obj else ""
+        img_tag = (
+            f'<img src="{img_url}" style="width:190px;height:105px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block;"/>'
+            if img_url
+            else ""
+        )
+
         point_rows.append(
             {
                 "lon": float(s["lon"]),
@@ -274,9 +295,10 @@ def _build_pydeck_map(
                 "label": pin_label,
                 "title": f"{pin_label}. {s['name']}",
                 "info": (
-                    f"Kategori: {theme['badge']} | "
-                    f"Saat: {s['arrival_time']}-{s['departure_time']} | "
-                    f"{leg_word}: {s['walk_from_prev_min']} dk ({s['walk_from_prev_m']} m)"
+                    f"{img_tag}"
+                    f"<b>{theme['badge']}</b><br/>"
+                    f"🕒 Saat: {time_info}<br/>"
+                    f"🧭 {leg_word}: {s['walk_from_prev_min']} dk ({s['walk_from_prev_m']} m)"
                 ),
                 "color": color,
             }
@@ -290,7 +312,7 @@ def _build_pydeck_map(
                         "lat": float(opt["lat"]),
                         "label": "Y",
                         "title": f"Alternatif Restoran: {opt['name']}",
-                        "info": f"{leg_word}: {opt['walk_from_stop_min']} dk ({opt['walk_from_stop_m']} m)",
+                        "info": f"🍽️ Alternatif Seçenek<br/>🧭 {leg_word}: {opt['walk_from_stop_min']} dk ({opt['walk_from_stop_m']} m)",
                         "color": [249, 115, 22, 225],
                     }
                 )
@@ -307,7 +329,7 @@ def _build_pydeck_map(
                 "PathLayer",
                 data=[{"path": path_coords}],
                 get_path="path",
-                get_color=[255, 255, 255, 235],
+                get_color=[255, 255, 255, 240],
                 width_min_pixels=9,
                 rounded=True,
                 joint_rounded=True,
@@ -319,11 +341,33 @@ def _build_pydeck_map(
                 data=[{"path": path_coords}],
                 get_path="path",
                 get_color=line_color,
-                width_min_pixels=5,
+                width_min_pixels=4 if travel_mode == "walking" else 6,
                 rounded=True,
                 joint_rounded=True,
             )
         )
+        if travel_mode == "walking":
+            # Google Maps yürüyüş modu tarzı mavi-beyaz adım noktaları
+            step_dots = [
+                {"lon": pt[0], "lat": pt[1]}
+                for idx_pt, pt in enumerate(path_coords)
+                if idx_pt % 2 == 0
+            ]
+            layers.append(
+                pdk.Layer(
+                    "ScatterplotLayer",
+                    data=step_dots,
+                    get_position="[lon, lat]",
+                    get_fill_color=[29, 78, 216, 245],
+                    get_radius=12,
+                    radius_min_pixels=4,
+                    radius_max_pixels=6,
+                    stroked=True,
+                    get_line_color=[255, 255, 255, 245],
+                    line_width_min_pixels=1.5,
+                    pickable=False,
+                )
+            )
 
     layers.append(
         pdk.Layer(
@@ -331,12 +375,12 @@ def _build_pydeck_map(
             data=point_rows,
             get_position="[lon, lat]",
             get_fill_color="color",
-            get_radius=42,
+            get_radius=44,
             radius_min_pixels=15,
             radius_max_pixels=22,
             stroked=True,
-            get_line_color=[255, 255, 255, 245],
-            line_width_min_pixels=2.5,
+            get_line_color=[255, 255, 255, 250],
+            line_width_min_pixels=3,
             pickable=True,
         )
     )
@@ -347,7 +391,7 @@ def _build_pydeck_map(
             get_position="[lon, lat]",
             get_text="label",
             size_units="pixels",
-            get_size=12,
+            get_size=13,
             get_color=[255, 255, 255, 255],
             get_text_anchor="middle",
             get_alignment_baseline="center",
@@ -363,14 +407,14 @@ def _build_pydeck_map(
     )
 
     tooltip = {
-        "html": "<b>{title}</b><br/>{info}",
+        "html": "<div style='max-width:210px;'><b>{title}</b><br/>{info}</div>",
         "style": {
             "backgroundColor": "#0f172a",
             "color": "white",
             "fontSize": "12px",
             "padding": "8px 12px",
-            "borderRadius": "6px",
-            "boxShadow": "0 2px 8px rgba(0,0,0,0.3)",
+            "borderRadius": "8px",
+            "boxShadow": "0 4px 12px rgba(0,0,0,0.35)",
         },
     }
 
@@ -1760,13 +1804,32 @@ def _render_day_view(
             custom_durations_override=updated_durations,
             target_day_idx=day_idx,
         )
-        _render_leaflet_route_map(
-            day_plans=[day_plan],
-            travel_mode=active_mode,
-            use_street_routing=use_street_routing,
-            venues_by_id=venues_by_id,
-            height=600,
+        map_line_color = (
+            [225, 29, 72, 225]
+            if active_mode == "driving" and len(st.session_state.get("day_plans", [])) <= 1
+            else color_rgb
         )
+        deck = _build_pydeck_map(
+            day_plan,
+            use_street_routing=use_street_routing,
+            route_color=map_line_color,
+            day_prefix=f"{day_num}-" if len(st.session_state.get("day_plans", [])) > 1 else "",
+            travel_mode=active_mode,
+            venues_by_id=venues_by_id,
+        )
+
+        map_tab1, map_tab2 = st.tabs(["🗺️ Canlı Rota Haritası", "🌐 İnteraktif Rehber (Leaflet)"])
+        with map_tab1:
+            st.pydeck_chart(deck, width="stretch", height=580)
+        with map_tab2:
+            _render_leaflet_route_map(
+                day_plans=[day_plan],
+                travel_mode=active_mode,
+                use_street_routing=use_street_routing,
+                venues_by_id=venues_by_id,
+                height=580,
+            )
+
         st.link_button(
             f"🧭 {day_title} Rotasını Google Haritalar'da Aç ({'Araba' if active_mode == 'driving' else 'Yürüyüş'})",
             _google_maps_walking_url(day_plan, travel_mode=active_mode),
@@ -2157,13 +2220,22 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                     f'<span style="color:{d_col["hex"]}; font-weight:700; margin-right:16px;">● {idx + 1}. Gün ({d_tr} - {d_col["name"]})</span>'
                 )
             st.markdown("".join(legend_parts), unsafe_allow_html=True)
-            _render_leaflet_route_map(
-                day_plans=day_plans,
-                travel_mode=combined_mode,
-                use_street_routing=use_street_geom,
-                venues_by_id=venues_by_id,
-                height=620,
-            )
+            comb_tab1, comb_tab2 = st.tabs(["🗺️ Birleşik Canlı Harita", "🌐 İnteraktif Rehber (Leaflet)"])
+            with comb_tab1:
+                combined_deck = _build_multi_day_pydeck_map(
+                    day_plans,
+                    use_street_routing=use_street_geom,
+                    travel_mode=combined_mode,
+                )
+                st.pydeck_chart(combined_deck, width="stretch", height=600)
+            with comb_tab2:
+                _render_leaflet_route_map(
+                    day_plans=day_plans,
+                    travel_mode=combined_mode,
+                    use_street_routing=use_street_geom,
+                    venues_by_id=venues_by_id,
+                    height=600,
+                )
 
         with tabs[-1]:
             st.subheader("📋 Slayt 5 Formatında Günlük Zaman Çizelgeleri & İndirme")
@@ -2231,6 +2303,20 @@ def main() -> None:
     st.session_state.setdefault("active_trip_id", None)
     st.session_state.setdefault("active_page", "planner")
     st.session_state.setdefault("travel_mode", "walking")
+
+    # Sayfa ilk açıldığında veya yenilendiğinde harita ve rotanın ekranda kalmasını sağla
+    if not st.session_state.get("day_plans"):
+        user = st.session_state.get("auth_user")
+        if user:
+            saved_trips = storage.list_saved_trips(user)
+            if saved_trips:
+                _load_saved_trip_into_state(saved_trips[0])
+        if not st.session_state.get("day_plans"):
+            default_res = plan_multi_day_trip(DEFAULT_PROMPT, travel_mode="walking")
+            plan_dicts = [r.model_dump() for r in default_res]
+            st.session_state["day_plans"] = plan_dicts
+            st.session_state["current_plan"] = plan_dicts[0]
+            st.session_state["day2_plan"] = plan_dicts[1] if len(plan_dicts) >= 2 else None
 
     venues, venues_by_id, _ = load_city_data()
 

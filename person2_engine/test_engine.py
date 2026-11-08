@@ -7,10 +7,12 @@ from contracts.models import ParsedRequest, Venue
 from person2_engine.optimizer import rank_candidate_orders
 from person2_engine.scheduler import build_schedule, hhmm_to_min
 from person2_engine.service import (
+    estimate_both_modes_totals,
     plan_multi_day_trip,
     plan_trip,
     recalculate_from_midday,
     replan_with_feedback,
+    switch_plan_travel_mode,
 )
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -144,5 +146,44 @@ def test_recalculate_from_midday_excludes_completed():
     assert "arkeoloji_muzesi" not in stop_ids
     assert "seka_kagit_muzesi" not in stop_ids
     assert not any(s.is_lunch for s in updated.stops)
+
+
+def test_travel_mode_switching_between_walking_and_driving():
+    walking_plan = plan_trip(
+        "Cumartesi sabah 09:30'da İzmit Eski Tren Garı'ndan başlayıp 17:00'de döneceğim. Müzeleri ve tarihi yapıları görmek istiyorum.",
+        overrides={"custom_durations": {"saat_kulesi": 40}},
+    )
+    assert walking_plan.stops[0].venue_id == "eski_gar"
+    assert "yürüme" in walking_plan.summary_text.lower()
+
+    both = estimate_both_modes_totals([s.model_dump() for s in walking_plan.stops])
+    assert both["walking"]["duration_min"] == walking_plan.total_walk_min
+    assert both["driving"]["duration_min"] > 0
+    assert both["driving"]["duration_min"] < both["walking"]["duration_min"]
+
+    driving_plan = switch_plan_travel_mode(walking_plan.model_dump(), "driving")
+    assert "araç (araba)" in driving_plan.summary_text.lower()
+    assert driving_plan.total_walk_min < walking_plan.total_walk_min
+    saat_stop_d = next((s for s in driving_plan.stops if s.venue_id == "saat_kulesi"), None)
+    assert saat_stop_d is not None and saat_stop_d.stay_min == 40
+
+    # Geri yürüyüş moduna dönüşte süreler tekrar yürüyüş matrisine döner
+    back_to_walk = switch_plan_travel_mode(driving_plan.model_dump(), "walking")
+    assert "yürüme" in back_to_walk.summary_text.lower()
+    assert back_to_walk.total_walk_min > driving_plan.total_walk_min
+
+
+def test_driving_mode_still_excludes_monday_closed_museums():
+    plans = plan_multi_day_trip(
+        "Pazartesi 09:30 - 16:30 arası İzmit Eski Tren Garı'ndan müzeler ve tarihi konakları gezmek istiyorum.",
+        travel_mode="driving",
+    )
+    assert len(plans) == 1
+    active_ids = {s.venue_id for s in plans[0].stops}
+    assert "arkeoloji_muzesi" not in active_ids
+    assert "seka_kagit_muzesi" not in active_ids
+    assert "kasri_humayun" not in active_ids
+    assert any(d.venue_id == "arkeoloji_muzesi" for d in plans[0].dropped_venues)
+
 
 

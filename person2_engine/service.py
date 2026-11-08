@@ -4,11 +4,12 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from contracts.models import CalculatedPlan, FinalResponse, ParsedRequest, Venue
 from person1_data_ai.llm_narrator import narrate_plan
 from person1_data_ai.llm_parser import parse_user_request, update_request_with_feedback
+from person2_engine.optimizer import get_leg
 from person2_engine.scheduler import build_schedule, hhmm_to_min
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -27,14 +28,23 @@ _NEXT_DAY_MAP = {
 _HUB_CATEGORIES = {"baslangic_bitis", "konaklama"}
 
 
-def load_city_data() -> Tuple[List[Venue], Dict[str, Venue], Dict[str, Dict[str, Dict[str, int]]]]:
-    """Önce data/ klasöründen, yoksa contracts/ altından şehir verisini ve yürüme matrisini yükler."""
+def load_city_data(
+    travel_mode: str = "walking",
+) -> Tuple[List[Venue], Dict[str, Venue], Dict[str, Dict[str, Dict[str, int]]]]:
+    """
+    Şehir verisini ve seçilen ulaşım moduna ('walking' veya 'driving') ait mesafe/süre
+    matrisini data/ klasöründen yükler (yoksa contracts/ yedeklerini kullanır).
+    """
     venues_path = DATA_DIR / "venues.json"
-    matrix_path = DATA_DIR / "walking_matrix.json"
     if not venues_path.exists():
         venues_path = CONTRACTS_DIR / "mock_venues.json"
-    if not matrix_path.exists():
-        matrix_path = CONTRACTS_DIR / "mock_walking_matrix.json"
+
+    if travel_mode == "driving" and (DATA_DIR / "driving_matrix.json").exists():
+        matrix_path = DATA_DIR / "driving_matrix.json"
+    else:
+        matrix_path = DATA_DIR / "walking_matrix.json"
+        if not matrix_path.exists():
+            matrix_path = CONTRACTS_DIR / "mock_walking_matrix.json"
 
     with open(venues_path, encoding="utf-8") as f:
         raw_venues = json.load(f)
@@ -60,6 +70,29 @@ def get_city_options() -> Dict[str, object]:
             if v.category == "konaklama"
         ],
         "interests": interests,
+    }
+
+
+def estimate_both_modes_totals(stops: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    """
+    Verilen durak sırası için hem Yürüyüş ('routed-foot') hem Araba ('driving') toplam süre ve mesafesini döndürür.
+    Google Haritalar'daki 🚶 / 🚗 karşılaştırma göstergesi için kullanılır.
+    """
+    _, _, walk_m = load_city_data("walking")
+    _, _, drive_m = load_city_data("driving")
+
+    def _sum(matrix: Dict[str, Dict[str, Dict[str, int]]]) -> Dict[str, Any]:
+        tot_min = 0
+        tot_dist = 0
+        for i in range(len(stops) - 1):
+            d_min, d_m = get_leg(matrix, stops[i]["venue_id"], stops[i + 1]["venue_id"])
+            tot_min += d_min
+            tot_dist += d_m
+        return {"duration_min": tot_min, "distance_km": round(tot_dist / 1000.0, 2)}
+
+    return {
+        "walking": _sum(walk_m),
+        "driving": _sum(drive_m),
     }
 
 
@@ -92,7 +125,6 @@ def _partition_pois_for_days(
         and not venues_by_id[vid].is_restaurant
         and venues_by_id[vid].category not in _HUB_CATEGORIES
     ]
-    # Coğrafi kümeler oluşturmak için boylama (batı -> doğu) göre sırala
     ordered_geo = sorted(unique_ids, key=lambda vid: (venues_by_id[vid].lon, venues_by_id[vid].lat))
 
     buckets: List[List[str]] = [[] for _ in range(num_days)]
@@ -107,7 +139,6 @@ def _partition_pois_for_days(
         buckets[d] = ordered_geo[idx : idx + take]
         idx += take
 
-    # Eğer günlerden biri Pazartesi (Mon) ise ve başka açık gün varsa, Pazartesi kapalı mekanları diğer günlerle takas et
     non_mon_days = [i for i, dc in enumerate(day_codes) if dc != "Mon"]
     for d, dc in enumerate(day_codes):
         if dc != "Mon" or not non_mon_days:
@@ -141,6 +172,7 @@ def _attach_narrations(
     venues_by_id: Dict[str, Venue],
     allow_llm: bool,
     used_parser_llm: bool,
+    travel_mode: str = "walking",
 ) -> FinalResponse:
     narration, used_narrator_llm = narrate_plan(
         calculated.model_dump(), venues_dicts, allow_llm=allow_llm
@@ -154,9 +186,21 @@ def _attach_narrations(
         if stop.venue_id in venues_by_id and not stop.source_url:
             stop.source_url = venues_by_id[stop.venue_id].source_url
 
+    summary_text = narration.get("summary_text", "")
+    if travel_mode == "driving":
+        poi_count = sum(
+            1
+            for s in calculated.stops
+            if not s.is_start and not s.is_end and not s.is_lunch
+        )
+        summary_text = (
+            f"{calculated.city} araç (araba) rotanız hazırlandı: toplam {poi_count} gezi durağı, "
+            f"{calculated.total_walk_min} dk ({calculated.total_walk_km} km) araç sürüşü ve {calculated.actual_end_time} bitiş saati."
+        )
+
     return FinalResponse(
         **calculated.model_dump(),
-        summary_text=narration.get("summary_text", ""),
+        summary_text=summary_text,
         used_llm=bool(used_parser_llm or used_narrator_llm),
     )
 
@@ -169,6 +213,7 @@ def _solve_days_from_parsed(
     custom_durations: Optional[Dict[str, int]] = None,
     used_parser_llm: bool = False,
     fill_multi_day_pool: bool = True,
+    travel_mode: str = "walking",
 ) -> List[FinalResponse]:
     durations = custom_durations or {}
     venues_dicts = [v.model_dump() for v in venues]
@@ -181,7 +226,12 @@ def _solve_days_from_parsed(
         calculated = build_schedule(parsed, venues_by_id, matrix, durations)
         return [
             _attach_narrations(
-                calculated, venues_dicts, venues_by_id, use_narrator_llm, used_parser_llm
+                calculated,
+                venues_dicts,
+                venues_by_id,
+                use_narrator_llm,
+                used_parser_llm,
+                travel_mode=travel_mode,
             )
         ]
 
@@ -200,7 +250,6 @@ def _solve_days_from_parsed(
     day_buckets = _partition_pois_for_days(all_pois, day_codes, venues_by_id)
 
     responses: List[FinalResponse] = []
-    # Çok günlük rotada konaklama / başlangıç noktası her günün başlangıç ve bitişi olur
     loop_hub = parsed.start_venue_id
     if venues_by_id.get(parsed.end_venue_id) and venues_by_id[parsed.end_venue_id].category == "konaklama":
         loop_hub = parsed.end_venue_id
@@ -219,7 +268,12 @@ def _solve_days_from_parsed(
         )
         calc = build_schedule(day_req, venues_by_id, matrix, durations)
         resp = _attach_narrations(
-            calc, venues_dicts, venues_by_id, use_narrator_llm, used_parser_llm
+            calc,
+            venues_dicts,
+            venues_by_id,
+            use_narrator_llm,
+            used_parser_llm,
+            travel_mode=travel_mode,
         )
         responses.append(resp)
 
@@ -230,13 +284,19 @@ def _solve_days_from_parsed(
 
 
 def plan_multi_day_trip(
-    user_text: str, overrides: Optional[Dict[str, object]] = None
+    user_text: str,
+    overrides: Optional[Dict[str, object]] = None,
+    travel_mode: str = "walking",
 ) -> List[FinalResponse]:
     """
-    1, 2 veya 3+ günlük yürüyüş planlarını liste halinde üretir.
-    Her gün aynı optimizasyon ve zamanlama motoru (build_schedule) ile çözülür.
+    1, 2 veya 3+ günlük rota planlarını liste halinde üretir.
+    travel_mode='walking' (varsayılan) veya 'driving' olabilir.
     """
-    venues, venues_by_id, matrix = load_city_data()
+    mode = str(overrides.get("travel_mode", travel_mode)) if overrides else travel_mode
+    if mode not in ("walking", "driving"):
+        mode = "walking"
+
+    venues, venues_by_id, matrix = load_city_data(mode)
     venues_dicts = [v.model_dump() for v in venues]
 
     parsed_dict, used_parser_llm = parse_user_request(
@@ -266,15 +326,19 @@ def plan_multi_day_trip(
         custom_durations=custom_durations,
         used_parser_llm=used_parser_llm,
         fill_multi_day_pool=True,
+        travel_mode=mode,
     )
 
 
-def plan_trip(user_text: str, overrides: Optional[Dict[str, object]] = None) -> FinalResponse:
+def plan_trip(
+    user_text: str,
+    overrides: Optional[Dict[str, object]] = None,
+    travel_mode: str = "walking",
+) -> FinalResponse:
     """
     Tek günlük veya 2 günlük ana giriş noktası (Eval 20 ve geriye dönük uyumluluk için).
-    Çok günlük tüm planlara erişmek için plan_multi_day_trip() kullanılabilir.
     """
-    day_plans = plan_multi_day_trip(user_text, overrides=overrides)
+    day_plans = plan_multi_day_trip(user_text, overrides=overrides, travel_mode=travel_mode)
     return day_plans[0]
 
 
@@ -282,12 +346,13 @@ def recalculate_trip(
     parsed_request_dict: Dict[str, object],
     custom_durations: Dict[str, int],
     removed_venue_ids: Optional[List[str]] = None,
+    travel_mode: str = "walking",
 ) -> FinalResponse:
     """
-    Arayüzde kalış süresi değiştirildiğinde veya durak çıkarıldığında
-    LLM'e tekrar gitmeden milisaniyede rotayı ve saatleri yeniden hesaplar.
+    Arayüzde kalış süresi değiştirildiğinde, durak çıkarıldığında veya haritada ulaşım modu
+    değiştiğinde rotayı seçilen moda ('walking' / 'driving') göre milisaniyede yeniden hesaplar.
     """
-    venues, venues_by_id, matrix = load_city_data()
+    venues, venues_by_id, matrix = load_city_data(travel_mode)
     venues_dicts = [v.model_dump() for v in venues]
 
     parsed = ParsedRequest.model_validate(parsed_request_dict)
@@ -299,7 +364,36 @@ def recalculate_trip(
 
     calculated = build_schedule(parsed, venues_by_id, matrix, custom_durations)
     return _attach_narrations(
-        calculated, venues_dicts, venues_by_id, allow_llm=False, used_parser_llm=False
+        calculated,
+        venues_dicts,
+        venues_by_id,
+        allow_llm=False,
+        used_parser_llm=False,
+        travel_mode=travel_mode,
+    )
+
+
+def switch_plan_travel_mode(
+    day_plan_dict: Dict[str, Any],
+    travel_mode: str,
+    custom_durations: Optional[Dict[str, int]] = None,
+    removed_venue_ids: Optional[List[str]] = None,
+) -> FinalResponse:
+    """
+    Mevcut bir gün planını Yürüyüş ('walking') ve Araba ('driving') modları arasında
+    dönüştürür; yol sırasını, durak varış/ayrılış saatlerini ve özet metni yeniden hesaplar.
+    """
+    durations = dict(custom_durations or {})
+    if not durations:
+        for s in day_plan_dict.get("stops", []):
+            if not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch"):
+                durations[s["venue_id"]] = int(s["stay_min"])
+
+    return recalculate_trip(
+        parsed_request_dict=day_plan_dict["parsed_request"],
+        custom_durations=durations,
+        removed_venue_ids=removed_venue_ids,
+        travel_mode=travel_mode,
     )
 
 
@@ -310,12 +404,13 @@ def replan_with_feedback(
     removed_venue_ids: Optional[List[str]] = None,
     num_days_override: Optional[int] = None,
     accommodation_id: Optional[str] = None,
+    travel_mode: str = "walking",
 ) -> List[FinalResponse]:
     """
     Slayt 4 (Alternatif plan): Kullanıcının 'daha az müze, daha çok park' gibi geri bildirimine
     göre kısıtları günceller ve motoru yeniden çalıştırır.
     """
-    venues, venues_by_id, matrix = load_city_data()
+    venues, venues_by_id, matrix = load_city_data(travel_mode)
     venues_dicts = [v.model_dump() for v in venues]
 
     updated_dict, used_llm = update_request_with_feedback(
@@ -341,6 +436,7 @@ def replan_with_feedback(
         custom_durations=custom_durations,
         used_parser_llm=used_llm,
         fill_multi_day_pool=False,
+        travel_mode=travel_mode,
     )
 
 
@@ -352,13 +448,14 @@ def recalculate_from_midday(
     custom_durations: Optional[Dict[str, int]] = None,
     removed_venue_ids: Optional[List[str]] = None,
     want_lunch_remaining: Optional[bool] = None,
+    travel_mode: str = "walking",
 ) -> FinalResponse:
     """
     Slayt 4 (Tamamlandı işareti & Gün ortasında yeni plan):
     Kullanıcının o anki konumunu ve saatini yeni başlangıç noktası yapar,
     tamamlanan/çıkarılan yerleri düşer ve kalan günü aynı hedef bitişe kadar yeniden planlar.
     """
-    venues, venues_by_id, matrix = load_city_data()
+    venues, venues_by_id, matrix = load_city_data(travel_mode)
     venues_dicts = [v.model_dump() for v in venues]
 
     parsed = ParsedRequest.model_validate(parsed_request_dict)
@@ -375,14 +472,12 @@ def recalculate_from_midday(
     cur_min = hhmm_to_min(clean_time)
     end_min = hhmm_to_min(parsed.end_time)
     if cur_min >= end_min:
-        # Gün bitmişse kullanıcıya anlamlı hata yerine 60 dk esnek uzatma veya net uyarı ver
         raise ValueError(
             f"Belirtilen anlık saat ({clean_time}) planlanan bitiş saatinden ({parsed.end_time}) ileri veya eşit."
         )
 
     parsed.start_time = clean_time
 
-    # Tamamlanan ve çıkarılan durakları kalan listeden temizle
     excluded = set(completed_venue_ids or []) | set(removed_venue_ids or [])
     parsed.selected_venue_ids = [
         vid
@@ -390,7 +485,6 @@ def recalculate_from_midday(
         if vid not in excluded and vid not in (parsed.start_venue_id, parsed.end_venue_id)
     ]
 
-    # Öğle yemeği daha önce gezildiyse veya saat öğle penceresini çok geçtiyse tekrar yemek koyma
     already_ate = any(
         vid in venues_by_id and venues_by_id[vid].is_restaurant for vid in (completed_venue_ids or [])
     )
@@ -401,5 +495,10 @@ def recalculate_from_midday(
 
     calculated = build_schedule(parsed, venues_by_id, matrix, custom_durations or {})
     return _attach_narrations(
-        calculated, venues_dicts, venues_by_id, allow_llm=False, used_parser_llm=False
+        calculated,
+        venues_dicts,
+        venues_by_id,
+        allow_llm=False,
+        used_parser_llm=False,
+        travel_mode=travel_mode,
     )

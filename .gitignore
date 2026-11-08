@@ -7,3 +7,6 @@ __pycache__/
 .streamlit/secrets.toml
 .DS_Store
 eval_report.json
+data/*.db
+data/*.sqlite
+scratch/

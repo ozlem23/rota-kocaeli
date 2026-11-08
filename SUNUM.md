@@ -36,11 +36,10 @@
 
 | Katman | Sorumlu | Teknoloji | Görevi |
 | :--- | :--- | :--- | :--- |
-| **Veri Pipeline** | Kişi 1 | OpenStreetMap (Overpass), OSRM Table API, Wikipedia TR | Tek seferde indirilmiş statik `data/venues.json` ve `walking_matrix.json` (API kotası koruması). |
-| **İstek Ayrıştırma** | Kişi 1 | Gemini API (`gemini-3.8-flash` Pydantic `response_format`) | Serbest metni başlangıç, bitiş, saat ve mekan ID'lerine çevirme (Sadece katalogdaki ID'ler seçilir). |
-| **Optimizasyon Motoru** | Kişi 2 | Python (`itertools.permutations` + 2-opt) | En az yürüyüş süreli sırayı kod ile kesin hesaplama. |
-| **Zamanlama & Kısıtlar** | Kişi 2 | Python `scheduler.py` | Kategori kalış süreleri (Slide 7), açılış saati kontrolü, gün sonu taşmalarını budama, 10 dk restoran filtresi. |
-| **Arayüz & Harita** | Kişi 3 | Streamlit + PyDeck (Carto Positron) + OSRM Route API | Form, saat saat çizelge kartları, interaktif harita, restoran radyo seçimi, süre düzenleyici. |
+| **Veri Pipeline** | Kişi 1 | OpenStreetMap (`routed-foot`), Wikimedia Commons, Wikipedia TR | Gerçek yaya koordinatlı 18 mekan/otel/restoran, sokak-kıvrımlı yaya yolları (`walking_paths.json`) ve doğrulanmış fotoğraflar. |
+| **İstek Ayrıştırma** | Kişi 1 | Gemini API (`gemini-3.8-flash` Pydantic `response_format`) | Serbest metni 1-3 günlük plan, başlangıç/konaklama/bitiş, saat ve geri bildirim güncellemelerine (`daha az müze`) çevirme. |
+| **Optimizasyon & Motor** | Kişi 2 | Python (`permutations` + 2-opt, coğrafi gün bölümleme) | Çok günlük konaklama döngüsü, açılış saati kontrolü, 10 dk restoran filtresi ve **gün ortasında anlık konum/saatten** yeniden planlama. |
+| **Arayüz, Harita & Hesap** | Kişi 3 | Streamlit + PyDeck + SQLite / Opsiyonel Supabase Auth & REST | Üst sayfa barı, görselli durak kartları, sokak-kıvrımlı OSM yaya haritası, kullanıcı hesabı, gezi kaydetme ve gezildi takibi. |
 
 ---
 

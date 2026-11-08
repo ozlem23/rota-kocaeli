@@ -11,8 +11,8 @@
       "başlangıç",
       "gar"
     ],
-    "lat": 40.7642,
-    "lon": 29.9234,
+    "lat": 40.76194,
+    "lon": 29.9172,
     "default_stay_min": 0,
     "opening_hours": null,
     "opening_hours_note": "Açık alan / başlangıç noktası",
@@ -35,8 +35,8 @@
       "arkeoloji",
       "kültür"
     ],
-    "lat": 40.7634,
-    "lon": 29.9197,
+    "lat": 40.7625,
+    "lon": 29.91583,
     "default_stay_min": 75,
     "opening_hours": {
       "open_time": "08:30",
@@ -65,8 +65,8 @@
       "kültür",
       "tarih"
     ],
-    "lat": 40.7615,
-    "lon": 29.9082,
+    "lat": 40.76071,
+    "lon": 29.90659,
     "default_stay_min": 75,
     "opening_hours": {
       "open_time": "09:00",
@@ -95,8 +95,8 @@
       "manzara",
       "simge"
     ],
-    "lat": 40.7655,
-    "lon": 29.9173,
+    "lat": 40.76283,
+    "lon": 29.91965,
     "default_stay_min": 15,
     "opening_hours": null,
     "opening_hours_note": "Dış cephe ziyareti — açılış saati kayıtlı değil",
@@ -119,8 +119,8 @@
       "köşk",
       "osmanlı"
     ],
-    "lat": 40.7652,
-    "lon": 29.9195,
+    "lat": 40.76302,
+    "lon": 29.9206,
     "default_stay_min": 30,
     "opening_hours": {
       "open_time": "09:00",
@@ -149,8 +149,8 @@
       "mimari",
       "kültür"
     ],
-    "lat": 40.7671,
-    "lon": 29.9197,
+    "lat": 40.76528,
+    "lon": 29.92056,
     "default_stay_min": 30,
     "opening_hours": {
       "open_time": "09:00",
@@ -177,8 +177,8 @@
       "osmanlı",
       "inanç"
     ],
-    "lat": 40.7647,
-    "lon": 29.9278,
+    "lat": 40.76266,
+    "lon": 29.92562,
     "default_stay_min": 20,
     "opening_hours": {
       "open_time": "05:30",
@@ -205,8 +205,8 @@
       "sahil",
       "tarih"
     ],
-    "lat": 40.7618,
-    "lon": 29.9163,
+    "lat": 40.7602,
+    "lon": 29.9135,
     "default_stay_min": 45,
     "opening_hours": {
       "open_time": "09:00",
@@ -235,8 +235,8 @@
       "mimar sinan",
       "osmanlı"
     ],
-    "lat": 40.7639,
-    "lon": 29.9317,
+    "lat": 40.76273,
+    "lon": 29.93103,
     "default_stay_min": 20,
     "opening_hours": null,
     "opening_hours_note": "Açılış saati OSM'de kayıtlı değil",
@@ -259,8 +259,8 @@
       "doğa",
       "yürüyüş"
     ],
-    "lat": 40.7601,
-    "lon": 29.9125,
+    "lat": 40.7588,
+    "lon": 29.9055,
     "default_stay_min": 40,
     "opening_hours": null,
     "opening_hours_note": "Açık park alanı — saat sınırı yok",
@@ -284,8 +284,8 @@
       "esnaf",
       "öğle yemeği"
     ],
-    "lat": 40.7649,
-    "lon": 29.927,
+    "lat": 40.7628,
+    "lon": 29.9259,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "10:30",
@@ -313,8 +313,8 @@
       "fırın",
       "öğle yemeği"
     ],
-    "lat": 40.7645,
-    "lon": 29.9287,
+    "lat": 40.7629,
+    "lon": 29.9275,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "11:00",
@@ -342,8 +342,8 @@
       "vejetaryen",
       "çorba"
     ],
-    "lat": 40.7644,
-    "lon": 29.9254,
+    "lat": 40.7634,
+    "lon": 29.9248,
     "default_stay_min": 60,
     "opening_hours": null,
     "opening_hours_note": "Açılış saati OSM'de kayıtlı değil",
@@ -367,8 +367,8 @@
       "mantı",
       "öğle yemeği"
     ],
-    "lat": 40.7656,
-    "lon": 29.9184,
+    "lat": 40.7631,
+    "lon": 29.9199,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "09:00",
@@ -396,8 +396,8 @@
       "sahil",
       "manzara"
     ],
-    "lat": 40.7607,
-    "lon": 29.9138,
+    "lat": 40.7594,
+    "lon": 29.9125,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "11:30",
@@ -426,8 +426,8 @@
       "et",
       "öğle yemeği"
     ],
-    "lat": 40.7648,
-    "lon": 29.922,
+    "lat": 40.7633,
+    "lon": 29.9242,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "11:00",

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import textwrap
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -140,51 +141,54 @@ def _load_mock_response() -> Dict[str, Any]:
         return json.load(f)
 
 
-def _fetch_osrm_street_geometry(coords: List[List[float]]) -> List[List[float]]:
-    if len(coords) < 2:
-        return [[float(c[1]), float(c[0])] for c in coords]
+WALKING_PATHS_PATH = ROOT_DIR / "data" / "walking_paths.json"
+MOCK_WALKING_PATHS_PATH = ROOT_DIR / "contracts" / "mock_walking_paths.json"
 
-    cache_store = st.session_state.setdefault("osrm_geom_cache", {})
-    key = ";".join(f"{c[1]:.5f},{c[0]:.5f}" for c in coords)
-    if key in cache_store:
-        return cache_store[key]
 
-    fallback = [[float(c[1]), float(c[0])] for c in coords]
-    if os.getenv("DISABLE_LIVE_OSRM_GEOM", "false").lower() == "true":
-        return fallback
+def _load_walking_paths() -> Dict[str, List[List[float]]]:
+    for p in (WALKING_PATHS_PATH, MOCK_WALKING_PATHS_PATH):
+        if p.exists():
+            with open(p, encoding="utf-8") as f:
+                return json.load(f)
+    return {}
 
-    try:
-        url = f"https://router.project-osrm.org/route/v1/foot/{key}?overview=full&geometries=geojson"
-        resp = requests.get(url, timeout=2.0)
-        if resp.status_code == 200:
-            data = resp.json()
-            routes = data.get("routes", [])
-            if routes and routes[0].get("geometry", {}).get("coordinates"):
-                geom = routes[0]["geometry"]["coordinates"]
-                cache_store[key] = geom
-                return geom
-    except Exception:
-        pass
 
-    cache_store[key] = fallback
-    return fallback
+def _get_plan_walking_path(plan: Dict[str, Any], walking_paths: Dict[str, Any]) -> List[List[float]]:
+    stops = plan.get("stops", [])
+    if len(stops) < 2:
+        return [[float(s["lon"]), float(s["lat"])] for s in stops]
+
+    full_coords: List[List[float]] = []
+    for i in range(len(stops) - 1):
+        u_id = stops[i]["venue_id"]
+        v_id = stops[i + 1]["venue_id"]
+        key = f"{u_id}::{v_id}"
+        fallback = [
+            [float(stops[i]["lon"]), float(stops[i]["lat"])],
+            [float(stops[i + 1]["lon"]), float(stops[i + 1]["lat"])],
+        ]
+        seg = walking_paths.get(key, fallback)
+        if full_coords and seg and full_coords[-1] == seg[0]:
+            full_coords.extend(seg[1:])
+        else:
+            full_coords.extend(seg)
+    return full_coords
 
 
 def _build_pydeck_map(
     plan: Dict[str, Any],
-    use_street_routing: bool = False,
+    use_street_routing: bool = True,
     route_color: Optional[List[int]] = None,
     day_prefix: str = "",
 ) -> pdk.Deck:
     stops = plan.get("stops", [])
-    coords = plan.get("route_coords", [])
-    if coords:
-        center_lat = sum(c[0] for c in coords) / len(coords)
-        center_lon = sum(c[1] for c in coords) / len(coords)
+    if stops:
+        center_lat = sum(float(s["lat"]) for s in stops) / len(stops)
+        center_lon = sum(float(s["lon"]) for s in stops) / len(stops)
     else:
-        center_lat, center_lon = 40.7645, 29.9210
+        center_lat, center_lon = 40.7628, 29.9196
 
-    line_color = route_color if route_color is not None else [30, 58, 138, 220]
+    line_color = route_color if route_color is not None else [30, 58, 138, 230]
 
     completed_ids = set(st.session_state.get("completed_stop_ids", []))
     point_rows: List[Dict[str, Any]] = []
@@ -224,17 +228,15 @@ def _build_pydeck_map(
                     }
                 )
 
+    walking_paths = _load_walking_paths()
+    path_coords = _get_plan_walking_path(plan, walking_paths)
+
     layers = []
-    if len(coords) >= 2:
-        if use_street_routing:
-            path_coords = _fetch_osrm_street_geometry(coords)
-        else:
-            path_coords = [[float(c[1]), float(c[0])] for c in coords]
-        path_data = [{"path": path_coords}]
+    if len(path_coords) >= 2:
         layers.append(
             pdk.Layer(
                 "PathLayer",
-                data=path_data,
+                data=[{"path": path_coords}],
                 get_path="path",
                 get_color=line_color,
                 width_min_pixels=5,
@@ -247,7 +249,7 @@ def _build_pydeck_map(
             data=point_rows,
             get_position="[lon, lat]",
             get_fill_color="color",
-            get_radius=48,
+            get_radius=42,
             radius_min_pixels=12,
             radius_max_pixels=20,
             pickable=True,
@@ -268,8 +270,8 @@ def _build_pydeck_map(
     view_state = pdk.ViewState(
         latitude=center_lat,
         longitude=center_lon,
-        zoom=14.2,
-        pitch=25,
+        zoom=14.5,
+        pitch=20,
     )
 
     tooltip = {
@@ -295,14 +297,14 @@ def _build_pydeck_map(
 def _build_multi_day_pydeck_map(
     day1_plan: Dict[str, Any],
     day2_plan: Dict[str, Any],
-    use_street_routing: bool = False,
+    use_street_routing: bool = True,
 ) -> pdk.Deck:
-    all_coords = day1_plan.get("route_coords", []) + day2_plan.get("route_coords", [])
-    if all_coords:
-        center_lat = sum(c[0] for c in all_coords) / len(all_coords)
-        center_lon = sum(c[1] for c in all_coords) / len(all_coords)
+    all_stops = day1_plan.get("stops", []) + day2_plan.get("stops", [])
+    if all_stops:
+        center_lat = sum(float(s["lat"]) for s in all_stops) / len(all_stops)
+        center_lon = sum(float(s["lon"]) for s in all_stops) / len(all_stops)
     else:
-        center_lat, center_lon = 40.7645, 29.9210
+        center_lat, center_lon = 40.7628, 29.9196
 
     point_rows: List[Dict[str, Any]] = []
 
@@ -334,12 +336,13 @@ def _build_multi_day_pydeck_map(
             }
         )
 
-    layers = []
+    walking_paths = _load_walking_paths()
+    path1 = _get_plan_walking_path(day1_plan, walking_paths)
+    path2 = _get_plan_walking_path(day2_plan, walking_paths)
 
+    layers = []
     # 1. Gün Yolu (Mavi Çizgi)
-    c1 = day1_plan.get("route_coords", [])
-    if len(c1) >= 2:
-        path1 = _fetch_osrm_street_geometry(c1) if use_street_routing else [[float(c[1]), float(c[0])] for c in c1]
+    if len(path1) >= 2:
         layers.append(
             pdk.Layer(
                 "PathLayer",
@@ -351,9 +354,7 @@ def _build_multi_day_pydeck_map(
         )
 
     # 2. Gün Yolu (Mor Çizgi)
-    c2 = day2_plan.get("route_coords", [])
-    if len(c2) >= 2:
-        path2 = _fetch_osrm_street_geometry(c2) if use_street_routing else [[float(c[1]), float(c[0])] for c in c2]
+    if len(path2) >= 2:
         layers.append(
             pdk.Layer(
                 "PathLayer",
@@ -370,7 +371,7 @@ def _build_multi_day_pydeck_map(
             data=point_rows,
             get_position="[lon, lat]",
             get_fill_color="color",
-            get_radius=52,
+            get_radius=48,
             radius_min_pixels=12,
             radius_max_pixels=20,
             pickable=True,
@@ -391,8 +392,8 @@ def _build_multi_day_pydeck_map(
     view_state = pdk.ViewState(
         latitude=center_lat,
         longitude=center_lon,
-        zoom=13.8,
-        pitch=25,
+        zoom=14.2,
+        pitch=20,
     )
 
     tooltip = {
@@ -546,7 +547,7 @@ def _render_official_header() -> None:
         </div>
     </div>
     """
-    st.markdown(header_html, unsafe_allow_html=True)
+    st.markdown(textwrap.dedent(header_html).strip(), unsafe_allow_html=True)
 
 
 def _render_catalog_page() -> None:
@@ -815,14 +816,14 @@ def _render_day_view(
 
             if s.get("is_lunch") and s.get("restaurant_options"):
                 st.markdown(
-                    """
-                    <div style="background: #fff7ed; border: 1px dashed #ea580c; border-radius: 6px;
-                                padding: 8px 12px; margin: 4px 0 10px 0;">
-                        <span style="color: #c2410c; font-weight: 700; font-size: 13px;">
-                            🍽️ Öğle Yemeği Yeri Alternatifleri (≤ 10 dk yürüme):
-                        </span>
-                    </div>
-                    """,
+                    (
+                        '<div style="background: #fff7ed; border: 1px dashed #ea580c; border-radius: 6px; '
+                        'padding: 8px 12px; margin: 4px 0 10px 0;">'
+                        '<span style="color: #c2410c; font-weight: 700; font-size: 13px;">'
+                        '🍽️ Öğle Yemeği Yeri Alternatifleri (≤ 10 dk yürüme):'
+                        '</span>'
+                        '</div>'
+                    ),
                     unsafe_allow_html=True,
                 )
                 opts = s["restaurant_options"]
@@ -972,15 +973,17 @@ def main() -> None:
         st.divider()
         st.subheader("🎨 Kategori Renk Kodları")
         st.markdown(
-            """
-            * <span style="color:#ea580c; font-weight:700;">● Turuncu:</span> Öğle Yemeği & Restoranlar
-            * <span style="color:#854d0e; font-weight:700;">● Kahverengi:</span> Tarihi Konaklar & Köşkler
-            * <span style="color:#a16207; font-weight:700;">● Antik Kahve:</span> Anıt & Saat Kulesi
-            * <span style="color:#1e40af; font-weight:700;">● Lacivert:</span> Müzeler & Sanayi Tarihi
-            * <span style="color:#047857; font-weight:700;">● Zümrüt Yeşili:</span> Camiler & Külliyeler
-            * <span style="color:#0284c7; font-weight:700;">● Körfez Mavisi:</span> Sahil & Park Alanı
-            * <span style="color:#334155; font-weight:700;">● Antrasit:</span> Başlangıç / Dönüş Noktası
-            """,
+            textwrap.dedent(
+                """
+                * <span style="color:#ea580c; font-weight:700;">● Turuncu:</span> Öğle Yemeği & Restoranlar
+                * <span style="color:#854d0e; font-weight:700;">● Kahverengi:</span> Tarihi Konaklar & Köşkler
+                * <span style="color:#a16207; font-weight:700;">● Antik Kahve:</span> Anıt & Saat Kulesi
+                * <span style="color:#1e40af; font-weight:700;">● Lacivert:</span> Müzeler & Sanayi Tarihi
+                * <span style="color:#047857; font-weight:700;">● Zümrüt Yeşili:</span> Camiler & Külliyeler
+                * <span style="color:#0284c7; font-weight:700;">● Körfez Mavisi:</span> Sahil & Park Alanı
+                * <span style="color:#334155; font-weight:700;">● Antrasit:</span> Başlangıç / Dönüş Noktası
+                """
+            ).strip(),
             unsafe_allow_html=True,
         )
 
@@ -1197,10 +1200,12 @@ def main() -> None:
                 f"🎉 **Hafta Sonu Tam Tur Özeti:** Toplam {tot_walk} dk yürüme mesafesi | {tot_km} km yol | 2 ayrı öğle yemeği molası | {p1 + p2} farklı mekan ziyareti!"
             )
             st.markdown(
-                """
-                * <span style="color:#2563eb; font-weight:700;">● Mavi Hat (1. Gün):</span> Müzeler, Saat Kulesi ve Tarihi Tren Garı Koridoru
-                * <span style="color:#9333ea; font-weight:700;">● Mor Hat (2. Gün):</span> Tarihi Konaklar, Mimar Sinan Camileri ve Körfez Sahil Koridoru
-                """,
+                textwrap.dedent(
+                    """
+                    * <span style="color:#2563eb; font-weight:700;">● Mavi Hat (1. Gün):</span> Müzeler, Saat Kulesi ve Tarihi Tren Garı Koridoru
+                    * <span style="color:#9333ea; font-weight:700;">● Mor Hat (2. Gün):</span> Tarihi Konaklar, Mimar Sinan Camileri ve Körfez Sahil Koridoru
+                    """
+                ).strip(),
                 unsafe_allow_html=True,
             )
             combined_deck = _build_multi_day_pydeck_map(plan, day2_plan, use_street_routing=use_street_geom)

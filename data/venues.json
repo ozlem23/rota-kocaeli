@@ -11,8 +11,8 @@
       "başlangıç",
       "gar"
     ],
-    "lat": 40.76197,
-    "lon": 29.91629,
+    "lat": 40.76186,
+    "lon": 29.91676,
     "default_stay_min": 0,
     "opening_hours": null,
     "opening_hours_note": "Açık alan / başlangıç noktası",
@@ -37,7 +37,7 @@
       "sekapark"
     ],
     "lat": 40.76025,
-    "lon": 29.90650,
+    "lon": 29.9065,
     "default_stay_min": 0,
     "opening_hours": null,
     "opening_hours_note": "Konaklama noktası / 7/24 resepsiyon",
@@ -84,8 +84,8 @@
       "arkeoloji",
       "kültür"
     ],
-    "lat": 40.76255,
-    "lon": 29.91589,
+    "lat": 40.76142,
+    "lon": 29.91548,
     "default_stay_min": 75,
     "opening_hours": {
       "open_time": "08:30",
@@ -114,8 +114,8 @@
       "kültür",
       "tarih"
     ],
-    "lat": 40.76267,
-    "lon": 29.90817,
+    "lat": 40.7605,
+    "lon": 29.90886,
     "default_stay_min": 75,
     "opening_hours": {
       "open_time": "09:00",
@@ -168,8 +168,8 @@
       "köşk",
       "osmanlı"
     ],
-    "lat": 40.76304,
-    "lon": 29.92062,
+    "lat": 40.7632,
+    "lon": 29.92028,
     "default_stay_min": 30,
     "opening_hours": {
       "open_time": "09:00",
@@ -255,7 +255,7 @@
       "tarih"
     ],
     "lat": 40.76023,
-    "lon": 29.91680,
+    "lon": 29.9168,
     "default_stay_min": 45,
     "opening_hours": {
       "open_time": "09:00",
@@ -285,7 +285,7 @@
       "osmanlı"
     ],
     "lat": 40.76274,
-    "lon": 29.93100,
+    "lon": 29.931,
     "default_stay_min": 20,
     "opening_hours": null,
     "opening_hours_note": "Açılış saati OSM'de kayıtlı değil",
@@ -309,7 +309,7 @@
       "yürüyüş"
     ],
     "lat": 40.75995,
-    "lon": 29.90680,
+    "lon": 29.9068,
     "default_stay_min": 40,
     "opening_hours": null,
     "opening_hours_note": "Açık park alanı — saat sınırı yok",

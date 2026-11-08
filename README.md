@@ -7,10 +7,10 @@ Zaman kısıtlı hackathon/atölye ortamında **kod paylaşımını ve Git çak�
 | Klasör | Sahibi | Görevi |
 | :--- | :--- | :--- |
 | `contracts/` | Ortak (Salt Okunur) | Pydantic veri modelleri ve sahte (mock) JSON sözleşmeleri |
-| `data/` | Kişi 1 (Üretir) / Kişi 2 (Okur) | Şehre ait statik `venues.json` ve `walking_matrix.json` |
-| `person1_data_ai/` | **Kişi 1** | Şehir verisi indirici, LLM ayrıştırıcı/anlatıcı, 20 istek sınaması |
-| `person2_engine/` | **Kişi 2** | Yürüme optimizasyonu, saat/kısıt/yemek motoru ve `service.py` |
-| `person3_ui/` | **Kişi 3** | Streamlit arayüzü, zaman çizelgesi, Folium harita ve yayın |
+| `data/` | Kişi 1 (Üretir) / Kişi 2 (Okur) | Doğrulanmış `venues.json`, yaya (`walking_matrix.json`, `walking_paths.json`) ve araç (`driving_matrix.json`, `driving_paths.json`) ağ verileri |
+| `person1_data_ai/` | **Kişi 1** | OSM/Wikimedia şehir verisi indirici, LLM ayrıştırıcı/anlatıcı, 20 istek sınaması |
+| `person2_engine/` | **Kişi 2** | Yaya & araç optimizasyonu, çok günlük konaklama döngüsü, gün ortası yeniden planlama ve `service.py` |
+| `person3_ui/` | **Kişi 3** | Kurumsal Streamlit arayüzü, PyDeck **🚶 Yürüyüş / 🚗 Araba** haritası ve hesap/kayıtlı geziler (`storage.py`) |
 
 ## Hızlı Kurulum (Herkes Kendi Bilgisayarında)
 

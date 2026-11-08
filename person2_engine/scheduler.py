@@ -165,7 +165,7 @@ def _simulate_order(
     if parsed.want_lunch:
         t_probe = start_min
         prev_probe = start_v.id
-        scored_candidates: List[Tuple[int, int, int, int]] = []
+        scored_candidates: List[Tuple[int, int, int, int, int, int]] = []
         for idx, vid in enumerate(order):
             w_min, _ = get_leg(matrix, prev_probe, vid)
             t_probe += w_min + stay_for(venues_by_id[vid])
@@ -191,12 +191,21 @@ def _simulate_order(
                     for r in nearby
                 )
                 pref_penalty = 0 if has_match else 1
-            scored_candidates.append((has_any_penalty, in_window_rank, pref_penalty, time_dist, idx))
+            next_probe = order[idx + 1] if idx + 1 < len(order) else end_v.id
+            detour_min = 99
+            if nearby:
+                top_r = nearby[0]
+                to_next_from_r, _ = get_leg(matrix, top_r.venue_id, next_probe)
+                direct_to_next, _ = get_leg(matrix, vid, next_probe)
+                detour_min = max(0, top_r.walk_from_stop_min + to_next_from_r - direct_to_next)
+            scored_candidates.append(
+                (has_any_penalty, in_window_rank, pref_penalty, detour_min, time_dist, idx)
+            )
             prev_probe = vid
 
         if scored_candidates:
-            scored_candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
-            lunch_after_idx = scored_candidates[0][4]
+            scored_candidates.sort(key=lambda x: (x[0], x[1], x[2], x[3], x[4]))
+            lunch_after_idx = scored_candidates[0][5]
         else:
             lunch_after_idx = -1
 

@@ -18,7 +18,7 @@
     },
     "seka_kagit_muzesi": {
       "duration_min": 12,
-      "distance_m": 934
+      "distance_m": 885
     },
     "saat_kulesi": {
       "duration_min": 6,
@@ -87,12 +87,12 @@
       "distance_m": 1690
     },
     "arkeoloji_muzesi": {
-      "duration_min": 17,
-      "distance_m": 1286
+      "duration_min": 14,
+      "distance_m": 1031
     },
     "seka_kagit_muzesi": {
-      "duration_min": 12,
-      "distance_m": 930
+      "duration_min": 6,
+      "distance_m": 436
     },
     "saat_kulesi": {
       "duration_min": 19,
@@ -161,12 +161,12 @@
       "distance_m": 0
     },
     "arkeoloji_muzesi": {
-      "duration_min": 9,
-      "distance_m": 707
+      "duration_min": 12,
+      "distance_m": 908
     },
     "seka_kagit_muzesi": {
-      "duration_min": 18,
-      "distance_m": 1352
+      "duration_min": 19,
+      "distance_m": 1462
     },
     "saat_kulesi": {
       "duration_min": 6,
@@ -227,146 +227,146 @@
       "distance_m": 289
     },
     "hotel_sekapark": {
-      "duration_min": 17,
-      "distance_m": 1286
+      "duration_min": 14,
+      "distance_m": 1031
     },
     "hotel_asya": {
-      "duration_min": 9,
-      "distance_m": 707
+      "duration_min": 12,
+      "distance_m": 908
     },
     "arkeoloji_muzesi": {
       "duration_min": 0,
       "distance_m": 0
     },
     "seka_kagit_muzesi": {
-      "duration_min": 9,
-      "distance_m": 701
+      "duration_min": 8,
+      "distance_m": 596
     },
     "saat_kulesi": {
-      "duration_min": 7,
-      "distance_m": 517
+      "duration_min": 10,
+      "distance_m": 730
     },
     "kasri_humayun": {
-      "duration_min": 6,
-      "distance_m": 476
+      "duration_min": 9,
+      "distance_m": 690
     },
     "sirri_pasa_konagi": {
-      "duration_min": 11,
-      "distance_m": 840
+      "duration_min": 14,
+      "distance_m": 1052
     },
     "fevziye_camii": {
-      "duration_min": 12,
-      "distance_m": 902
+      "duration_min": 15,
+      "distance_m": 1104
     },
     "gayret_gemi_muzesi": {
       "duration_min": 7,
-      "distance_m": 560
+      "distance_m": 509
     },
     "yeni_cuma_camii": {
-      "duration_min": 18,
-      "distance_m": 1359
+      "duration_min": 21,
+      "distance_m": 1560
     },
     "sekapark_sahil": {
-      "duration_min": 17,
-      "distance_m": 1249
+      "duration_min": 10,
+      "distance_m": 783
     },
     "rest_fevziye_kofte": {
-      "duration_min": 12,
-      "distance_m": 899
+      "duration_min": 15,
+      "distance_m": 1100
     },
     "rest_yuruyus_pide": {
-      "duration_min": 16,
-      "distance_m": 1164
+      "duration_min": 18,
+      "distance_m": 1365
     },
     "rest_cumhuriyet_ev": {
-      "duration_min": 13,
-      "distance_m": 976
+      "duration_min": 16,
+      "distance_m": 1177
     },
     "rest_kultur_tepesi": {
-      "duration_min": 7,
-      "distance_m": 530
+      "duration_min": 10,
+      "distance_m": 743
     },
     "rest_seka_balik": {
-      "duration_min": 11,
-      "distance_m": 828
+      "duration_min": 17,
+      "distance_m": 1268
     },
     "rest_izmit_iskender": {
-      "duration_min": 14,
-      "distance_m": 1023
+      "duration_min": 16,
+      "distance_m": 1224
     }
   },
   "seka_kagit_muzesi": {
     "eski_gar": {
       "duration_min": 12,
-      "distance_m": 934
+      "distance_m": 885
     },
     "hotel_sekapark": {
-      "duration_min": 12,
-      "distance_m": 930
+      "duration_min": 6,
+      "distance_m": 436
     },
     "hotel_asya": {
-      "duration_min": 18,
-      "distance_m": 1352
+      "duration_min": 19,
+      "distance_m": 1462
     },
     "arkeoloji_muzesi": {
-      "duration_min": 9,
-      "distance_m": 701
+      "duration_min": 8,
+      "distance_m": 596
     },
     "seka_kagit_muzesi": {
       "duration_min": 0,
       "distance_m": 0
     },
     "saat_kulesi": {
-      "duration_min": 15,
-      "distance_m": 1133
+      "duration_min": 16,
+      "distance_m": 1220
     },
     "kasri_humayun": {
-      "duration_min": 15,
-      "distance_m": 1093
+      "duration_min": 16,
+      "distance_m": 1180
     },
     "sirri_pasa_konagi": {
-      "duration_min": 19,
-      "distance_m": 1456
+      "duration_min": 21,
+      "distance_m": 1542
     },
     "fevziye_camii": {
-      "duration_min": 21,
-      "distance_m": 1547
+      "duration_min": 22,
+      "distance_m": 1657
     },
     "gayret_gemi_muzesi": {
-      "duration_min": 14,
-      "distance_m": 1066
+      "duration_min": 11,
+      "distance_m": 814
     },
     "yeni_cuma_camii": {
-      "duration_min": 27,
-      "distance_m": 2004
+      "duration_min": 28,
+      "distance_m": 2077
     },
     "sekapark_sahil": {
-      "duration_min": 12,
-      "distance_m": 892
+      "duration_min": 2,
+      "distance_m": 187
     },
     "rest_fevziye_kofte": {
-      "duration_min": 21,
-      "distance_m": 1544
+      "duration_min": 22,
+      "distance_m": 1654
     },
     "rest_yuruyus_pide": {
-      "duration_min": 24,
-      "distance_m": 1809
+      "duration_min": 26,
+      "distance_m": 1918
     },
     "rest_cumhuriyet_ev": {
-      "duration_min": 22,
-      "distance_m": 1615
+      "duration_min": 23,
+      "distance_m": 1731
     },
     "rest_kultur_tepesi": {
-      "duration_min": 15,
-      "distance_m": 1146
+      "duration_min": 16,
+      "distance_m": 1233
     },
     "rest_seka_balik": {
-      "duration_min": 8,
-      "distance_m": 618
+      "duration_min": 9,
+      "distance_m": 673
     },
     "rest_izmit_iskender": {
-      "duration_min": 22,
-      "distance_m": 1668
+      "duration_min": 24,
+      "distance_m": 1778
     }
   },
   "saat_kulesi": {
@@ -383,12 +383,12 @@
       "distance_m": 443
     },
     "arkeoloji_muzesi": {
-      "duration_min": 7,
-      "distance_m": 517
+      "duration_min": 10,
+      "distance_m": 730
     },
     "seka_kagit_muzesi": {
-      "duration_min": 15,
-      "distance_m": 1133
+      "duration_min": 16,
+      "distance_m": 1220
     },
     "saat_kulesi": {
       "duration_min": 0,
@@ -457,12 +457,12 @@
       "distance_m": 651
     },
     "arkeoloji_muzesi": {
-      "duration_min": 6,
-      "distance_m": 476
+      "duration_min": 9,
+      "distance_m": 690
     },
     "seka_kagit_muzesi": {
-      "duration_min": 15,
-      "distance_m": 1093
+      "duration_min": 16,
+      "distance_m": 1180
     },
     "saat_kulesi": {
       "duration_min": 4,
@@ -531,12 +531,12 @@
       "distance_m": 663
     },
     "arkeoloji_muzesi": {
-      "duration_min": 11,
-      "distance_m": 840
+      "duration_min": 14,
+      "distance_m": 1052
     },
     "seka_kagit_muzesi": {
-      "duration_min": 19,
-      "distance_m": 1456
+      "duration_min": 21,
+      "distance_m": 1542
     },
     "saat_kulesi": {
       "duration_min": 9,
@@ -605,12 +605,12 @@
       "distance_m": 324
     },
     "arkeoloji_muzesi": {
-      "duration_min": 12,
-      "distance_m": 902
+      "duration_min": 15,
+      "distance_m": 1104
     },
     "seka_kagit_muzesi": {
-      "duration_min": 21,
-      "distance_m": 1547
+      "duration_min": 22,
+      "distance_m": 1657
     },
     "saat_kulesi": {
       "duration_min": 8,
@@ -680,11 +680,11 @@
     },
     "arkeoloji_muzesi": {
       "duration_min": 7,
-      "distance_m": 560
+      "distance_m": 509
     },
     "seka_kagit_muzesi": {
-      "duration_min": 14,
-      "distance_m": 1066
+      "duration_min": 11,
+      "distance_m": 814
     },
     "saat_kulesi": {
       "duration_min": 9,
@@ -753,12 +753,12 @@
       "distance_m": 713
     },
     "arkeoloji_muzesi": {
-      "duration_min": 18,
-      "distance_m": 1359
+      "duration_min": 21,
+      "distance_m": 1560
     },
     "seka_kagit_muzesi": {
-      "duration_min": 27,
-      "distance_m": 2004
+      "duration_min": 28,
+      "distance_m": 2077
     },
     "saat_kulesi": {
       "duration_min": 14,
@@ -827,12 +827,12 @@
       "distance_m": 1652
     },
     "arkeoloji_muzesi": {
-      "duration_min": 17,
-      "distance_m": 1249
+      "duration_min": 10,
+      "distance_m": 783
     },
     "seka_kagit_muzesi": {
-      "duration_min": 12,
-      "distance_m": 892
+      "duration_min": 2,
+      "distance_m": 187
     },
     "saat_kulesi": {
       "duration_min": 19,
@@ -901,12 +901,12 @@
       "distance_m": 321
     },
     "arkeoloji_muzesi": {
-      "duration_min": 12,
-      "distance_m": 899
+      "duration_min": 15,
+      "distance_m": 1100
     },
     "seka_kagit_muzesi": {
-      "duration_min": 21,
-      "distance_m": 1544
+      "duration_min": 22,
+      "distance_m": 1654
     },
     "saat_kulesi": {
       "duration_min": 8,
@@ -975,12 +975,12 @@
       "distance_m": 597
     },
     "arkeoloji_muzesi": {
-      "duration_min": 16,
-      "distance_m": 1164
+      "duration_min": 18,
+      "distance_m": 1365
     },
     "seka_kagit_muzesi": {
-      "duration_min": 24,
-      "distance_m": 1809
+      "duration_min": 26,
+      "distance_m": 1918
     },
     "saat_kulesi": {
       "duration_min": 11,
@@ -1049,12 +1049,12 @@
       "distance_m": 459
     },
     "arkeoloji_muzesi": {
-      "duration_min": 13,
-      "distance_m": 976
+      "duration_min": 16,
+      "distance_m": 1177
     },
     "seka_kagit_muzesi": {
-      "duration_min": 22,
-      "distance_m": 1615
+      "duration_min": 23,
+      "distance_m": 1731
     },
     "saat_kulesi": {
       "duration_min": 8,
@@ -1123,12 +1123,12 @@
       "distance_m": 584
     },
     "arkeoloji_muzesi": {
-      "duration_min": 7,
-      "distance_m": 530
+      "duration_min": 10,
+      "distance_m": 743
     },
     "seka_kagit_muzesi": {
-      "duration_min": 15,
-      "distance_m": 1146
+      "duration_min": 16,
+      "distance_m": 1233
     },
     "saat_kulesi": {
       "duration_min": 5,
@@ -1197,12 +1197,12 @@
       "distance_m": 1278
     },
     "arkeoloji_muzesi": {
-      "duration_min": 11,
-      "distance_m": 828
+      "duration_min": 17,
+      "distance_m": 1268
     },
     "seka_kagit_muzesi": {
-      "duration_min": 8,
-      "distance_m": 618
+      "duration_min": 9,
+      "distance_m": 673
     },
     "saat_kulesi": {
       "duration_min": 14,
@@ -1271,12 +1271,12 @@
       "distance_m": 457
     },
     "arkeoloji_muzesi": {
-      "duration_min": 14,
-      "distance_m": 1023
+      "duration_min": 16,
+      "distance_m": 1224
     },
     "seka_kagit_muzesi": {
-      "duration_min": 22,
-      "distance_m": 1668
+      "duration_min": 24,
+      "distance_m": 1778
     },
     "saat_kulesi": {
       "duration_min": 9,

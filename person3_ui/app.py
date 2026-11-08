@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import html
 import json
+import math
 import os
 import sys
 import textwrap
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import pydeck as pdk
 import streamlit as st
+import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -195,22 +198,26 @@ def _get_plan_walking_path(
         return [[float(s["lon"]), float(s["lat"])] for s in stops]
 
     full_coords: List[List[float]] = []
-    for i in range(len(stops) - 1):
+    n_legs = len(stops) - 1
+    for i in range(n_legs):
         u_pt = [float(stops[i]["lon"]), float(stops[i]["lat"])]
         v_pt = [float(stops[i + 1]["lon"]), float(stops[i + 1]["lat"])]
         if use_street_routing:
             key = f"{stops[i]['venue_id']}::{stops[i + 1]['venue_id']}"
-            seg = list(walking_paths.get(key) or [u_pt, v_pt])
+            seg = [list(pt) for pt in (walking_paths.get(key) or [u_pt, v_pt])]
         else:
             seg = [u_pt, v_pt]
 
-        # Yaya yolunun uçlarını tam pin koordinatına bağla (arada görsel boşluk kalmasın)
         if not seg:
             seg = [u_pt, v_pt]
         else:
-            if abs(seg[0][0] - u_pt[0]) > 1e-6 or abs(seg[0][1] - u_pt[1]) > 1e-6:
+            # Sadece sokak noktası durağa çok yakınsa (<25m) veya ilk/son duraksa uç noktayı bağla;
+            # aksi halde bina içine girip çıkan V-şekilli keskin çizgileri önle.
+            d_u = math.hypot(seg[0][0] - u_pt[0], seg[0][1] - u_pt[1])
+            d_v = math.hypot(seg[-1][0] - v_pt[0], seg[-1][1] - v_pt[1])
+            if (i == 0 or d_u < 0.00022) and d_u > 1e-6:
                 seg.insert(0, u_pt)
-            if abs(seg[-1][0] - v_pt[0]) > 1e-6 or abs(seg[-1][1] - v_pt[1]) > 1e-6:
+            if (i == n_legs - 1 or d_v < 0.00022) and d_v > 1e-6:
                 seg.append(v_pt)
 
         if full_coords and seg and full_coords[-1] == seg[0]:
@@ -218,6 +225,25 @@ def _get_plan_walking_path(
         else:
             full_coords.extend(seg)
     return full_coords
+
+
+def _auto_view_bounds(coords_lon_lat: List[List[float]]) -> Tuple[float, float, float]:
+    if not coords_lon_lat:
+        return 40.7625, 29.9195, 14.2
+    lons = [c[0] for c in coords_lon_lat]
+    lats = [c[1] for c in coords_lon_lat]
+    center_lat = (min(lats) + max(lats)) / 2.0
+    center_lon = (min(lons) + max(lons)) / 2.0
+    span = max(max(lats) - min(lats), (max(lons) - min(lons)) * 0.78)
+    if span > 0.032:
+        zoom = 13.3
+    elif span > 0.022:
+        zoom = 13.7
+    elif span > 0.014:
+        zoom = 14.1
+    else:
+        zoom = 14.5
+    return center_lat, center_lon, zoom
 
 
 def _build_pydeck_map(
@@ -228,13 +254,7 @@ def _build_pydeck_map(
     travel_mode: str = "walking",
 ) -> pdk.Deck:
     stops = plan.get("stops", [])
-    if stops:
-        center_lat = sum(float(s["lat"]) for s in stops) / len(stops)
-        center_lon = sum(float(s["lon"]) for s in stops) / len(stops)
-    else:
-        center_lat, center_lon = 40.7628, 29.9196
-
-    line_color = route_color if route_color is not None else [37, 99, 235, 235]
+    line_color = route_color if route_color is not None else [37, 99, 235, 240]
     leg_word = "Araç" if travel_mode == "driving" else "Yürüme"
     completed_ids = set(st.session_state.get("completed_stop_ids", []))
     point_rows: List[Dict[str, Any]] = []
@@ -242,7 +262,7 @@ def _build_pydeck_map(
     for s in stops:
         theme = _get_theme(s.get("category", ""))
         if s["venue_id"] in completed_ids and not s.get("is_start") and not s.get("is_end"):
-            color = [16, 185, 129, 240]
+            color = [16, 185, 129, 245]
         else:
             color = theme["map_rgb"]
 
@@ -271,15 +291,28 @@ def _build_pydeck_map(
                         "label": "Y",
                         "title": f"Alternatif Restoran: {opt['name']}",
                         "info": f"{leg_word}: {opt['walk_from_stop_min']} dk ({opt['walk_from_stop_m']} m)",
-                        "color": [249, 115, 22, 220],
+                        "color": [249, 115, 22, 225],
                     }
                 )
 
     route_paths = _load_walking_paths(travel_mode)
     path_coords = _get_plan_walking_path(plan, route_paths, use_street_routing=use_street_routing)
+    all_pts = path_coords + [[r["lon"], r["lat"]] for r in point_rows]
+    center_lat, center_lon, zoom = _auto_view_bounds(all_pts)
 
     layers = []
     if len(path_coords) >= 2:
+        layers.append(
+            pdk.Layer(
+                "PathLayer",
+                data=[{"path": path_coords}],
+                get_path="path",
+                get_color=[255, 255, 255, 235],
+                width_min_pixels=9,
+                rounded=True,
+                joint_rounded=True,
+            )
+        )
         layers.append(
             pdk.Layer(
                 "PathLayer",
@@ -298,12 +331,12 @@ def _build_pydeck_map(
             data=point_rows,
             get_position="[lon, lat]",
             get_fill_color="color",
-            get_radius=40,
-            radius_min_pixels=14,
+            get_radius=42,
+            radius_min_pixels=15,
             radius_max_pixels=22,
             stroked=True,
-            get_line_color=[255, 255, 255, 235],
-            line_width_min_pixels=2,
+            get_line_color=[255, 255, 255, 245],
+            line_width_min_pixels=2.5,
             pickable=True,
         )
     )
@@ -314,10 +347,10 @@ def _build_pydeck_map(
             get_position="[lon, lat]",
             get_text="label",
             size_units="pixels",
-            get_size=11,
+            get_size=12,
             get_color=[255, 255, 255, 255],
-            get_text_anchor='"middle"',
-            get_alignment_baseline='"center"',
+            get_text_anchor="middle",
+            get_alignment_baseline="center",
             get_pixel_offset=[0, 0],
         )
     )
@@ -325,8 +358,8 @@ def _build_pydeck_map(
     view_state = pdk.ViewState(
         latitude=center_lat,
         longitude=center_lon,
-        zoom=14.4,
-        pitch=15,
+        zoom=zoom,
+        pitch=0,
     )
 
     tooltip = {
@@ -344,7 +377,7 @@ def _build_pydeck_map(
     return pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
-        map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+        map_style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
         tooltip=tooltip,
     )
 
@@ -354,16 +387,10 @@ def _build_multi_day_pydeck_map(
     use_street_routing: bool = True,
     travel_mode: str = "walking",
 ) -> pdk.Deck:
-    all_stops = [s for p in day_plans for s in p.get("stops", [])]
-    if all_stops:
-        center_lat = sum(float(s["lat"]) for s in all_stops) / len(all_stops)
-        center_lon = sum(float(s["lon"]) for s in all_stops) / len(all_stops)
-    else:
-        center_lat, center_lon = 40.7628, 29.9196
-
     route_paths = _load_walking_paths(travel_mode)
     leg_word = "Araç" if travel_mode == "driving" else "Yürüme"
     point_rows: List[Dict[str, Any]] = []
+    all_pts: List[List[float]] = []
     layers = []
 
     for idx, day_plan in enumerate(day_plans):
@@ -375,7 +402,19 @@ def _build_multi_day_pydeck_map(
         path_coords = _get_plan_walking_path(
             day_plan, route_paths, use_street_routing=use_street_routing
         )
+        all_pts.extend(path_coords)
         if len(path_coords) >= 2:
+            layers.append(
+                pdk.Layer(
+                    "PathLayer",
+                    data=[{"path": path_coords}],
+                    get_path="path",
+                    get_color=[255, 255, 255, 230],
+                    width_min_pixels=9,
+                    rounded=True,
+                    joint_rounded=True,
+                )
+            )
             layers.append(
                 pdk.Layer(
                     "PathLayer",
@@ -403,6 +442,9 @@ def _build_multi_day_pydeck_map(
                     "color": d_rgb,
                 }
             )
+            all_pts.append([float(s["lon"]), float(s["lat"])])
+
+    center_lat, center_lon, zoom = _auto_view_bounds(all_pts)
 
     layers.append(
         pdk.Layer(
@@ -411,11 +453,11 @@ def _build_multi_day_pydeck_map(
             get_position="[lon, lat]",
             get_fill_color="color",
             get_radius=44,
-            radius_min_pixels=14,
+            radius_min_pixels=15,
             radius_max_pixels=22,
             stroked=True,
-            get_line_color=[255, 255, 255, 235],
-            line_width_min_pixels=2,
+            get_line_color=[255, 255, 255, 245],
+            line_width_min_pixels=2.5,
             pickable=True,
         )
     )
@@ -426,10 +468,10 @@ def _build_multi_day_pydeck_map(
             get_position="[lon, lat]",
             get_text="label",
             size_units="pixels",
-            get_size=11,
+            get_size=12,
             get_color=[255, 255, 255, 255],
-            get_text_anchor='"middle"',
-            get_alignment_baseline='"center"',
+            get_text_anchor="middle",
+            get_alignment_baseline="center",
             get_pixel_offset=[0, 0],
         )
     )
@@ -437,8 +479,8 @@ def _build_multi_day_pydeck_map(
     view_state = pdk.ViewState(
         latitude=center_lat,
         longitude=center_lon,
-        zoom=14.1,
-        pitch=15,
+        zoom=zoom,
+        pitch=0,
     )
 
     tooltip = {
@@ -456,9 +498,349 @@ def _build_multi_day_pydeck_map(
     return pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
-        map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+        map_style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
         tooltip=tooltip,
     )
+
+
+def _render_leaflet_route_map(
+    day_plans: List[Dict[str, Any]],
+    travel_mode: str = "walking",
+    use_street_routing: bool = True,
+    venues_by_id: Optional[Dict[str, Venue]] = None,
+    height: int = 580,
+) -> None:
+    """
+    Google Haritalar kalitesinde interaktif Leaflet haritası:
+    - Renkli sokak/uydu katman seçici, otomatik fitBounds kadrajlama,
+    - Üzerinde sıra numarası yazan özel HTML pin rozetleri ve kalıcı kısa isim etiketleri,
+    - Yürüyüş modunda Google Maps tarzı mavi noktalı/kesikli çizgi + yön okları,
+    - Araç modunda beyaz dış konturlu belirgin sürüş rotası + yön okları,
+    - Tıklanınca mekan fotoğrafı, saat ve Google Maps bağlantısı açılan zengin bilgi kartı.
+    """
+    route_paths = _load_walking_paths(travel_mode)
+    completed_ids = set(st.session_state.get("completed_stop_ids", []))
+    is_multi = len(day_plans) > 1
+    leg_word = "Araçla" if travel_mode == "driving" else "Yürüyerek"
+
+    js_days: List[Dict[str, Any]] = []
+    for idx, dp in enumerate(day_plans):
+        d_num = idx + 1
+        d_col = DAY_COLORS[idx % len(DAY_COLORS)]
+        line_hex = (
+            "#e11d48"
+            if (travel_mode == "driving" and not is_multi)
+            else d_col["hex"]
+        )
+        day_tr = DAY_LABELS_TR.get(dp.get("day_of_week", ""), dp.get("day_of_week", ""))
+        lonlat_path = _get_plan_walking_path(
+            dp, route_paths, use_street_routing=use_street_routing
+        )
+        latlon_path = [[round(pt[1], 6), round(pt[0], 6)] for pt in lonlat_path]
+
+        stops = dp.get("stops", [])
+        n_stops = len(stops)
+        js_stops: List[Dict[str, Any]] = []
+        for s_idx, s in enumerate(stops):
+            if s.get("is_end") and n_stops >= 2 and s["venue_id"] == stops[0]["venue_id"]:
+                # Başlangıç ve bitiş aynı nokta ise başlangıç pininde birleştir
+                continue
+            theme = _get_theme(s.get("category", ""))
+            is_done = (
+                s["venue_id"] in completed_ids
+                and not s.get("is_start")
+                and not s.get("is_end")
+            )
+            pin_bg = "#10b981" if is_done else (d_col["hex"] if is_multi else theme["border"])
+            pin_num = f"{d_num}-{s['order']}" if is_multi else str(s["order"])
+            if s.get("is_start") and n_stops >= 2 and stops[-1]["venue_id"] == s["venue_id"]:
+                time_str = f"Başlangıç: {s['arrival_time']} • Dönüş: {stops[-1]['arrival_time']}"
+            else:
+                time_str = f"{s['arrival_time']} – {s['departure_time']}"
+
+            v_obj = venues_by_id.get(s["venue_id"]) if venues_by_id else None
+            img_url = getattr(v_obj, "image_url", "") if v_obj else ""
+            short_name = s["name"].replace("Öğle Yemeği — ", "")
+            if len(short_name) > 22:
+                short_name = short_name[:20].rstrip() + "…"
+
+            js_stops.append(
+                {
+                    "lat": float(s["lat"]),
+                    "lon": float(s["lon"]),
+                    "num": pin_num,
+                    "name": html.escape(s["name"]),
+                    "short_name": html.escape(short_name),
+                    "badge": html.escape(theme["badge"]),
+                    "color": pin_bg,
+                    "time": html.escape(time_str),
+                    "leg": (
+                        f"{leg_word}: {s['walk_from_prev_min']} dk ({s['walk_from_prev_m']} m)"
+                        if s["order"] > 0
+                        else "Başlangıç / Konaklama Üssü"
+                    ),
+                    "img": img_url or "",
+                    "gmaps": _google_maps_pin_url(float(s["lat"]), float(s["lon"])),
+                    "is_start": bool(s.get("is_start")),
+                    "is_lunch": bool(s.get("is_lunch")),
+                    "is_done": is_done,
+                }
+            )
+        js_days.append(
+            {
+                "day_num": d_num,
+                "day_label": f"{d_num}. Gün ({day_tr})",
+                "color": line_hex,
+                "path": latlon_path,
+                "stops": js_stops,
+            }
+        )
+
+    payload_json = json.dumps(
+        {"days": js_days, "mode": travel_mode, "is_multi": is_multi},
+        ensure_ascii=False,
+    )
+
+    map_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body {{ margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
+  #map {{ width: 100%; height: {height - 8}px; border-radius: 12px; border: 1.5px solid #cbd5e1; box-sizing: border-box; }}
+  .rk-pin-wrap {{
+    position: relative;
+    display: flex;
+    align-items: center;
+    pointer-events: auto;
+  }}
+  .rk-pin-circle {{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2.5px solid #ffffff;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.38);
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+  }}
+  .rk-pin-wrap:hover .rk-pin-circle {{
+    transform: scale(1.16);
+  }}
+  .rk-pin-label {{
+    margin-left: 5px;
+    background: rgba(255, 255, 255, 0.94);
+    color: #0f172a;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.16);
+    white-space: nowrap;
+    pointer-events: none;
+  }}
+  .rk-arrow-icon {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 900;
+    text-shadow: 0 0 3px #ffffff, 0 0 3px #ffffff;
+    pointer-events: none;
+  }}
+  .rk-fit-btn {{
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+  }}
+  .rk-fit-btn:hover {{ background: #f1f5f9; }}
+  .rk-legend-box {{
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #1e293b;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
+    line-height: 1.5;
+  }}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  const DATA = {payload_json};
+  const map = L.map('map', {{ zoomControl: true, attributionControl: true }});
+
+  const voyager = L.tileLayer('https://{{s}}.basemaps.cartocdn.com/rastertiles/voyager/{{z}}/{{x}}/{{y}}{{r}}.png', {{
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }}).addTo(map);
+
+  const osmStd = L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }});
+
+  const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
+    maxZoom: 19,
+    attribution: '&copy; Esri'
+  }});
+
+  L.control.layers({{
+    "🗺️ Google/Voyager Rehber Haritası": voyager,
+    "🧭 OpenStreetMap Sokak": osmStd,
+    "🛰️ Uydu Görüntüsü": satellite
+  }}, null, {{ position: 'topright', collapsed: true }}).addTo(map);
+
+  const boundsPts = [];
+
+  DATA.days.forEach(day => {{
+    if (day.path && day.path.length >= 2) {{
+      day.path.forEach(pt => boundsPts.push(pt));
+
+      // Dış beyaz kontur (Google Maps şerit çerçevesi)
+      L.polyline(day.path, {{
+        color: '#ffffff',
+        weight: 9,
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }}).addTo(map);
+
+      if (DATA.mode === 'walking') {{
+        // Alt yarı saydam mavi iz + üstte Google Maps yürüyüş noktalı çizgisi
+        L.polyline(day.path, {{
+          color: day.color,
+          weight: 4.5,
+          opacity: 0.38,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }}).addTo(map);
+        L.polyline(day.path, {{
+          color: day.color,
+          weight: 5.5,
+          opacity: 0.98,
+          dashArray: '2, 10',
+          lineCap: 'round',
+          lineJoin: 'round'
+        }}).addTo(map);
+      }} else {{
+        // Araba modu: kesintisiz koyu renkli sürüş şeridi
+        L.polyline(day.path, {{
+          color: day.color,
+          weight: 5.5,
+          opacity: 0.95,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }}).addTo(map);
+      }}
+
+      // Güzergah yön okları (►)
+      const step = Math.max(12, Math.floor(day.path.length / 7));
+      for (let i = Math.floor(step / 2); i < day.path.length - 2; i += step) {{
+        const p1 = day.path[i];
+        const p2 = day.path[i + 1];
+        const dy = p2[0] - p1[0];
+        const dx = (p2[1] - p1[1]) * Math.cos(p1[0] * Math.PI / 180);
+        if (Math.hypot(dx, dy) < 1e-5) continue;
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        const arrowIcon = L.divIcon({{
+          className: 'rk-arrow-icon',
+          html: `<div style="transform: rotate(${{-angle}}deg); color: ${{day.color}};">➤</div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8]
+        }});
+        L.marker(p1, {{ icon: arrowIcon, interactive: false }}).addTo(map);
+      }}
+    }}
+
+    day.stops.forEach(s => {{
+      boundsPts.push([s.lat, s.lon]);
+      const pinHtml = `
+        <div class="rk-pin-wrap">
+          <div class="rk-pin-circle" style="background:${{s.color}};">${{s.num}}</div>
+          <div class="rk-pin-label">${{s.short_name}}</div>
+        </div>
+      `;
+      const icon = L.divIcon({{
+        className: '',
+        html: pinHtml,
+        iconSize: [150, 34],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+      }});
+
+      const imgHtml = s.img
+        ? `<img src="${{s.img}}" style="width:100%; height:110px; object-fit:cover; border-radius:6px; margin-bottom:6px; border:1px solid #e2e8f0;" />`
+        : '';
+      const popupHtml = `
+        <div style="width:230px; font-family:sans-serif;">
+          ${{imgHtml}}
+          <div style="font-size:10.5px; font-weight:700; color:${{s.color}}; margin-bottom:2px;">${{s.badge}}</div>
+          <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:4px;">${{s.num}}. ${{s.name}}</div>
+          <div style="font-size:11.5px; color:#334155; margin-bottom:2px;">🕒 <b>Saat:</b> ${{s.time}}</div>
+          <div style="font-size:11.5px; color:#475569; margin-bottom:6px;">🧭 ${{s.leg}}</div>
+          <a href="${{s.gmaps}}" target="_blank" style="display:inline-block; background:#0f172a; color:#ffffff; text-decoration:none; font-size:11px; font-weight:700; padding:4px 9px; border-radius:5px;">📍 Google Haritalar'da Aç →</a>
+        </div>
+      `;
+      L.marker([s.lat, s.lon], {{ icon: icon, zIndexOffset: s.is_start ? 1000 : 500 }})
+        .addTo(map)
+        .bindPopup(popupHtml);
+    }});
+  }});
+
+  function fitAll() {{
+    if (boundsPts.length >= 2) {{
+      map.fitBounds(L.latLngBounds(boundsPts), {{ padding: [44, 44], maxZoom: 16 }});
+    }} else if (boundsPts.length === 1) {{
+      map.setView(boundsPts[0], 15);
+    }} else {{
+      map.setView([40.7625, 29.9195], 14);
+    }}
+  }}
+  fitAll();
+
+  const fitCtrl = L.control({{ position: 'topleft' }});
+  fitCtrl.onAdd = function() {{
+    const btn = L.DomUtil.create('button', 'rk-fit-btn');
+    btn.innerHTML = '🎯 Tüm Rotayı Sığdır';
+    btn.onclick = function(e) {{
+      L.DomEvent.stopPropagation(e);
+      fitAll();
+    }};
+    return btn;
+  }};
+  fitCtrl.addTo(map);
+
+  const legendCtrl = L.control({{ position: 'bottomleft' }});
+  legendCtrl.onAdd = function() {{
+    const div = L.DomUtil.create('div', 'rk-legend-box');
+    const modeTxt = DATA.mode === 'driving'
+      ? '<b>🚗 Araba Yolu:</b> Kesintisiz Sürüş Şeridi (➤ Yönlü)'
+      : '<b>🚶 Yürüyüş Yolu:</b> Noktalı Yaya Kaldırım Ağı (➤ Yönlü)';
+    div.innerHTML = modeTxt + '<br/><span style="color:#475569;">💡 Pinlere tıklayarak mekan fotoğrafı ve saat detayını görebilirsiniz.</span>';
+    return div;
+  }};
+  legendCtrl.addTo(map);
+</script>
+</body>
+</html>"""
+    components.html(map_html, height=height, scrolling=False)
 
 
 def _apply_restaurant_choice(plan: Dict[str, Any], chosen_venue_id: str) -> Dict[str, Any]:
@@ -1301,19 +1683,13 @@ def _render_day_view(
             custom_durations_override=updated_durations,
             target_day_idx=day_idx,
         )
-        map_line_color = (
-            [225, 29, 72, 225]
-            if active_mode == "driving" and len(st.session_state.get("day_plans", [])) <= 1
-            else color_rgb
-        )
-        deck = _build_pydeck_map(
-            day_plan,
-            use_street_routing=use_street_routing,
-            route_color=map_line_color,
-            day_prefix=f"{day_num}-",
+        _render_leaflet_route_map(
+            day_plans=[day_plan],
             travel_mode=active_mode,
+            use_street_routing=use_street_routing,
+            venues_by_id=venues_by_id,
+            height=600,
         )
-        st.pydeck_chart(deck, width="stretch", height=580)
         st.link_button(
             f"🧭 {day_title} Rotasını Google Haritalar'da Aç ({'Araba' if active_mode == 'driving' else 'Yürüyüş'})",
             _google_maps_walking_url(day_plan, travel_mode=active_mode),
@@ -1661,12 +2037,13 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                     f'<span style="color:{d_col["hex"]}; font-weight:700; margin-right:16px;">● {idx + 1}. Gün ({d_tr} - {d_col["name"]})</span>'
                 )
             st.markdown("".join(legend_parts), unsafe_allow_html=True)
-            combined_deck = _build_multi_day_pydeck_map(
-                day_plans,
-                use_street_routing=use_street_geom,
+            _render_leaflet_route_map(
+                day_plans=day_plans,
                 travel_mode=combined_mode,
+                use_street_routing=use_street_geom,
+                venues_by_id=venues_by_id,
+                height=620,
             )
-            st.pydeck_chart(combined_deck, width="stretch", height=600)
 
         with tabs[-1]:
             st.subheader("📋 Slayt 5 Formatında Günlük Zaman Çizelgeleri & İndirme")

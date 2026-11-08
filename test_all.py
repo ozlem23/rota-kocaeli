@@ -63,8 +63,10 @@ def _smoke_test_ui_and_contracts() -> None:
     with open(ROOT_DIR / "contracts" / "mock_final_response.json", encoding="utf-8") as f:
         mock_data = json.load(f)
     FinalResponse.model_validate(mock_data)
-    _build_pydeck_map(mock_data, use_street_routing=True)
-    _build_multi_day_pydeck_map([mock_data, mock_data], use_street_routing=True)
+    _build_pydeck_map(mock_data, use_street_routing=True, travel_mode="walking")
+    _build_pydeck_map(mock_data, use_street_routing=True, travel_mode="driving")
+    _build_multi_day_pydeck_map([mock_data, mock_data], use_street_routing=True, travel_mode="walking")
+    _build_multi_day_pydeck_map([mock_data, mock_data], use_street_routing=True, travel_mode="driving")
 
     _smoke_test_storage()
 
@@ -72,11 +74,25 @@ def _smoke_test_ui_and_contracts() -> None:
     at.run()
     assert not at.exception, f"UI başlangıç hatası: {at.exception}"
 
-    # Rota oluştur
+    # Rota oluştur (varsayılan: Yürüyüş Yolu)
     submit_btn = next(b for b in at.button if "Rota Oluştur" in b.label)
     submit_btn.click().run()
     assert not at.exception, f"Rota Oluştur hatası: {at.exception}"
     assert at.success, "Özet başarı mesajı oluşmadı."
+    assert any("Yürüme" in m.label for m in at.metric), "Varsayılan mod Yürüyüş olmalı."
+
+    # Google Maps tarzı Araba Yolu geçişi
+    drive_btn = next(b for b in at.button if b.key == "mode_drive_day_1")
+    drive_btn.click().run()
+    assert not at.exception, f"Araba Yolu geçiş hatası: {at.exception}"
+    assert any("Araç" in m.label for m in at.metric), "Araba modunda Araç Süresi metriği gösterilmeli."
+    assert any("araç (araba)" in s.value.lower() for s in at.success), "Araba modunda özet metni güncellenmeli."
+
+    # Tekrar Yürüyüş Yolu'na dönüş
+    walk_btn = next(b for b in at.button if b.key == "mode_walk_day_1")
+    walk_btn.click().run()
+    assert not at.exception, f"Yürüyüş Yolu dönüş hatası: {at.exception}"
+    assert any("Yürüme" in m.label for m in at.metric), "Yürüyüş moduna dönüşte Yürüme Süresi metriği görünmeli."
 
     # Yeniden hesapla
     recalc_btn = next(b for b in at.button if "Yeniden Hesapla" in b.label)

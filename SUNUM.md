@@ -36,10 +36,10 @@
 
 | Katman | Sorumlu | Teknoloji | Görevi |
 | :--- | :--- | :--- | :--- |
-| **Veri Pipeline** | Kişi 1 | OpenStreetMap (`routed-foot`), Wikimedia Commons, Wikipedia TR | Gerçek yaya koordinatlı 18 mekan/otel/restoran, sokak-kıvrımlı yaya yolları (`walking_paths.json`) ve doğrulanmış fotoğraflar. |
+| **Veri Pipeline** | Kişi 1 | OpenStreetMap (`routed-foot` + `driving`), Wikimedia Commons, Wikipedia TR | Gerçek koordinatlı 18 mekan/otel/restoran, ayrı yaya (`walking_paths.json`) ve tek yönlü araç (`driving_paths.json`) yolları ile doğrulanmış fotoğraflar. |
 | **İstek Ayrıştırma** | Kişi 1 | Gemini API (`gemini-3.8-flash` Pydantic `response_format`) | Serbest metni 1-3 günlük plan, başlangıç/konaklama/bitiş, saat ve geri bildirim güncellemelerine (`daha az müze`) çevirme. |
-| **Optimizasyon & Motor** | Kişi 2 | Python (`permutations` + 2-opt, coğrafi gün bölümleme) | Çok günlük konaklama döngüsü, açılış saati kontrolü, 10 dk restoran filtresi ve **gün ortasında anlık konum/saatten** yeniden planlama. |
-| **Arayüz, Harita & Hesap** | Kişi 3 | Streamlit + PyDeck + SQLite / Opsiyonel Supabase Auth & REST | Üst sayfa barı, görselli durak kartları, sokak-kıvrımlı OSM yaya haritası, kullanıcı hesabı, gezi kaydetme ve gezildi takibi. |
+| **Optimizasyon & Motor** | Kişi 2 | Python (`permutations` + 2-opt, coğrafi gün bölümleme) | Yaya/araba modu arası anlık yeniden hesaplama, çok günlük konaklama döngüsü, açılış saati kontrolü, 10 dk restoran filtresi ve **gün ortasında** yeniden planlama. |
+| **Arayüz, Harita & Hesap** | Kişi 3 | Streamlit + PyDeck + SQLite / Opsiyonel Supabase Auth & REST | Üst sayfa barı, görselli durak kartları, Google Maps tarzı **🚶 Yürüyüş / 🚗 Araba** harita seçicisi, kullanıcı hesabı ve gezildi takibi. |
 
 ---
 
@@ -78,7 +78,7 @@
 ---
 
 ## 6. Sınırlar (Sistemin Yapamadıkları)
-* **Toplu Taşıma:** Sistem yalnızca yaya rotalarını destekler; tramvay, vapur veya otobüs aktarmalarını hesaplamaz.
+* **Toplu Taşıma:** Sistem yalnızca yaya ve araç (araba) rotalarını destekler; tramvay, vapur veya otobüs aktarmalarını hesaplamaz.
 * **Açılış Saati Bilinmeyen Mekanlar:** OpenStreetMap üzerinde açılış saati girilmemiş tarihi çeşme, saat kulesi veya anıtlar için saat uydurulmaz; açıkça *"Açılış saati bilinmiyor"* uyarısı verilir.
 * **Katalog Sınırı:** İnternetten serbest mekan araması yapılmaz; halüsinasyon riskini sıfırlamak için yalnızca doğrulanmış `venues.json` listesindeki mekanlar ve restoranlar kullanılır.
 

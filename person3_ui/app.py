@@ -435,33 +435,32 @@ def _render_catalog_page() -> None:
     for idx, v in enumerate(filtered):
         theme = _get_theme(v.category)
         with grid_cols[idx % 2]:
-            st.markdown(
-                f"""
-                <div style="border-left: 5px solid {theme['border']}; background: {theme['bg']};
-                            padding: 14px; border-radius: 8px; margin-bottom: 14px;
-                            box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <h4 style="margin: 0; color: {theme['text']}; font-size: 16px;">{v.name}</h4>
-                        <span style="background: {theme['border']}; color: white; font-size: 10px;
-                                     font-weight: 700; padding: 2px 8px; border-radius: 12px;">
-                            {theme['badge']}
-                        </span>
-                    </div>
-                    <p style="font-size: 12.5px; color: #334155; margin: 8px 0;">{v.description_short}</p>
-                    <div style="font-size: 11.5px; color: #64748b;">
-                        <b>Varsayılan Kalış:</b> {v.default_stay_min} dk | 
-                        <b>Açılış:</b> {v.opening_hours_note or 'Kayıtlı değil'}
-                        {f" | <b>Fiyat:</b> {v.price_range}" if v.price_range else ""}
-                    </div>
-                    <div style="margin-top: 6px;">
-                        <a href="{v.source_url}" target="_blank" style="font-size: 11px; color: #2563eb; text-decoration: none;">
-                            📖 {v.source_name} Kaynağını İncele →
-                        </a>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+            img_html = ""
+            if getattr(v, "image_url", None):
+                img_html = f'<img src="{v.image_url}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;" alt="{v.name}" />'
+            price_info = f" | <b>Fiyat:</b> {v.price_range}" if v.price_range else ""
+            open_note = v.opening_hours_note or "Açılış saati bilinmiyor"
+            card_html = (
+                f'<div style="border-left: 5px solid {theme["border"]}; background: {theme["bg"]}; '
+                f'padding: 14px; border-radius: 8px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">'
+                f'{img_html}'
+                f'<div style="display: flex; justify-content: space-between; align-items: start;">'
+                f'<h4 style="margin: 0; color: {theme["text"]}; font-size: 16px;">{v.name}</h4>'
+                f'<span style="background: {theme["border"]}; color: white; font-size: 10px; font-weight: 700; '
+                f'padding: 2px 8px; border-radius: 12px;">{theme["badge"]}</span>'
+                f'</div>'
+                f'<p style="font-size: 12.5px; color: #334155; margin: 8px 0;">{v.description_short}</p>'
+                f'<div style="font-size: 11.5px; color: #64748b;">'
+                f'<b>Varsayılan Kalış:</b> {v.default_stay_min} dk | <b>Açılış:</b> {open_note}{price_info}'
+                f'</div>'
+                f'<div style="margin-top: 8px;">'
+                f'<a href="{v.source_url}" target="_blank" style="font-size: 11px; color: #2563eb; text-decoration: none; font-weight: 600;">'
+                f'📖 {v.source_name} Kaynağını İncele →'
+                f'</a>'
+                f'</div>'
+                f'</div>'
             )
+            st.markdown(card_html, unsafe_allow_html=True)
 
 
 def _render_eval_report_page() -> None:
@@ -606,6 +605,9 @@ def main() -> None:
         st.subheader("💡 Hızlı Örnek İstekler")
         presets = {
             "Klasik İzmit Kültür Turu": DEFAULT_PROMPT,
+            "2 Günlük Hafta Sonu Turu": (
+                "Cumartesi ve Pazar iki günlük gezi planı yapmak istiyorum. Müzeleri, tarihi konakları ve sahili gezelim, öğle yemeği molası olsun."
+            ),
             "Pazartesi (Kapalı Müze Testi)": (
                 "Pazartesi 09:30 - 16:30 arası İzmit Eski Tren Garı'ndan başlayıp müzeleri ve tarihi konakları gezmek istiyorum."
             ),
@@ -631,7 +633,13 @@ def main() -> None:
             value=st.session_state.get("prompt_box", DEFAULT_PROMPT),
             height=90,
         )
-        with st.expander("İsteğe Bağlı Detaylı Filtreler (Gün Sayısı, Başlangıç, Saat, Yemek)"):
+        plan_type_selected = st.radio(
+            "Plan Türü:",
+            ["Metinden Otomatik Algıla", "Günübirlik Gezi (1 Gün)", "2 Günlük Gezi (Hafta Sonu)"],
+            horizontal=True,
+            index=0,
+        )
+        with st.expander("İsteğe Bağlı Detaylı Filtreler (Başlangıç, Bitiş, Saat, Yemek)"):
             c1, c2, c3, c4 = st.columns(4)
             with c1:
                 day_choice = st.selectbox(
@@ -654,7 +662,7 @@ def main() -> None:
             with t3:
                 lunch_ov = st.selectbox("Öğle Yemeği", ["(Metinden)", "Evet", "Hayır"])
             with t4:
-                num_days = st.selectbox("Gün Sayısı", [1, 2], index=0)
+                num_days_manual = st.selectbox("Manuel Gün Sayısı", ["(Otomatik)", "1 Gün", "2 Gün"], index=0)
 
         submitted = st.form_submit_button("Rota Oluştur", type="primary", width="stretch")
 
@@ -689,7 +697,8 @@ def main() -> None:
                     "et": end_time_ov,
                     "food": food_override,
                     "lunch": lunch_ov,
-                    "days": num_days,
+                    "plan_type": plan_type_selected,
+                    "num_days_manual": num_days_manual,
                 },
                 sort_keys=True,
                 ensure_ascii=False,
@@ -720,32 +729,16 @@ def main() -> None:
                 if lunch_ov != "(Metinden)":
                     overrides["want_lunch"] = lunch_ov == "Evet"
 
+                if plan_type_selected == "2 Günlük Gezi (Hafta Sonu)" or num_days_manual == "2 Gün":
+                    overrides["num_days"] = 2
+                    overrides["plan_days"] = ["Sat", "Sun"]
+                elif plan_type_selected == "Günübirlik Gezi (1 Gün)" or num_days_manual == "1 Gün":
+                    overrides["num_days"] = 1
+
                 with st.spinner("En az yürüyüşlü rota ve saatler hesaplanıyor..."):
                     res: FinalResponse = plan_trip(active_prompt, overrides=overrides)
                     plan_dict = res.model_dump()
-                    day2_dict: Optional[Dict[str, Any]] = None
-
-                    if num_days == 2:
-                        day1_pois = {
-                            s["venue_id"]
-                            for s in plan_dict["stops"]
-                            if not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch")
-                        }
-                        remaining_ids = [
-                            v["id"]
-                            for v in venue_choices
-                            if v["id"] not in day1_pois
-                            and v["id"]
-                            not in (
-                                plan_dict["parsed_request"]["start_venue_id"],
-                                plan_dict["parsed_request"]["end_venue_id"],
-                            )
-                        ]
-                        if remaining_ids:
-                            day2_req = dict(plan_dict["parsed_request"])
-                            day2_req["selected_venue_ids"] = remaining_ids
-                            day2_res = recalculate_trip(day2_req, custom_durations={})
-                            day2_dict = day2_res.model_dump()
+                    day2_dict: Optional[Dict[str, Any]] = plan_dict.get("day2_plan")
 
                     st.session_state["plan_cache"][cache_key] = {
                         "day1": plan_dict,
@@ -760,35 +753,49 @@ def main() -> None:
         st.info("Başlamak için gezi isteğinizi yazıp **Rota Oluştur** butonuna tıklayın.")
         return
 
+    day2_plan = st.session_state.get("day2_plan")
+    active_plan = plan
+    if day2_plan:
+        d1_name = DAY_LABELS_TR.get(plan.get("day_of_week", "Sat"), plan.get("day_of_week", "1. Gün"))
+        d2_name = DAY_LABELS_TR.get(day2_plan.get("day_of_week", "Sun"), day2_plan.get("day_of_week", "2. Gün"))
+        st.info("📅 **2 Günlük Planlama Aktif:** Aşağıdan günü seçerek her iki günün rotasını, öğle yemeğini ve haritasını ayrı ayrı inceleyebilirsiniz.")
+        chosen_day = st.segmented_control(
+            "İncelenen Gün Seçimi:",
+            [f"1. Gün ({d1_name})", f"2. Gün ({d2_name})"],
+            default=f"1. Gün ({d1_name})",
+        )
+        if chosen_day and chosen_day.startswith("2. Gün"):
+            active_plan = day2_plan
+
     # Özet metrikler (Kurumsal tasarım)
     m1, m2, m3, m4 = st.columns(4)
     poi_count = sum(
         1
-        for s in plan["stops"]
+        for s in active_plan["stops"]
         if not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch")
     )
-    m1.metric("Toplam Yürüme Süresi", f"{plan['total_walk_min']} dk")
-    m2.metric("Toplam Yürüme Mesafesi", f"{plan['total_walk_km']} km")
+    m1.metric("Toplam Yürüme Süresi", f"{active_plan['total_walk_min']} dk")
+    m2.metric("Toplam Yürüme Mesafesi", f"{active_plan['total_walk_km']} km")
     m3.metric("Gezilecek Durak Sayısı", f"{poi_count} mekan")
-    m4.metric("Dönüş / Bitiş Saati", f"{plan['actual_end_time']} (Hedef: {plan['requested_end_time']})")
+    m4.metric("Dönüş / Bitiş Saati", f"{active_plan['actual_end_time']} (Hedef: {active_plan['requested_end_time']})")
 
-    if plan.get("summary_text"):
-        st.success(f"📋 **Tur Özeti:** {plan['summary_text']}")
+    if active_plan.get("summary_text"):
+        st.success(f"📋 **Tur Özeti:** {active_plan['summary_text']}")
 
-    if plan.get("warnings"):
-        warnings_md = "\n".join(f"- {w}" for w in plan["warnings"])
+    if active_plan.get("warnings"):
+        warnings_md = "\n".join(f"- {w}" for w in active_plan["warnings"])
         st.warning(f"⚠️ **Dikkat Edilmesi Gerekenler ve Saat Uyarıları**\n\n{warnings_md}")
 
-    if plan.get("dropped_venues"):
-        with st.expander(f"Rotaya Alınamayan / Güne Sığmayan Mekanlar ({len(plan['dropped_venues'])})"):
-            for d in plan["dropped_venues"]:
+    if active_plan.get("dropped_venues"):
+        with st.expander(f"Rotaya Alınamayan / Güne Sığmayan Mekanlar ({len(active_plan['dropped_venues'])})"):
+            for d in active_plan["dropped_venues"]:
                 st.write(f"- **{d['name']}**: {d['reason']}")
 
     tab_cards, tab_slide5, tab_day2 = st.tabs(
         [
             "🗺️ Renk Kodlu İnteraktif Rota & Harita",
             "📋 Slayt 5 Kompakt Çizelgesi & İndirme",
-            "📅 2. Gün Planı (Çoklu Gün)",
+            "📅 2 Günlük Hafta Sonu Özeti",
         ]
     )
 
@@ -800,7 +807,7 @@ def main() -> None:
             updated_durations: Dict[str, int] = {}
             completed_ids: List[str] = st.session_state.get("completed_stop_ids", [])
 
-            for idx, s in enumerate(plan["stops"]):
+            for idx, s in enumerate(active_plan["stops"]):
                 is_poi = not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch")
                 is_done = s["venue_id"] in completed_ids
                 theme = _get_theme(s.get("category", ""))
@@ -809,31 +816,30 @@ def main() -> None:
                 border_color = "#10b981" if is_done else theme["border"]
                 bg_color = "#f0fdf4" if is_done else theme["bg"]
 
-                st.markdown(
-                    f"""
-                    <div style="border-left: 6px solid {border_color}; background: {bg_color};
-                                padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
-                                box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <span style="font-size: 14px; font-weight: 700; color: #0f172a;">
-                                    {s['arrival_time']} – {s['departure_time']} | {s['order']}. {s['name']}
-                                </span>
-                                {' <span style="color:#10b981; font-weight:700;">(Tamamlandı ✅)</span>' if is_done else ''}
-                            </div>
-                            <span style="background: {border_color}; color: white; font-size: 11px;
-                                         font-weight: 700; padding: 2px 10px; border-radius: 9999px;">
-                                {theme['badge']}
-                            </span>
-                        </div>
-                        <div style="font-size: 12px; color: #475569; margin-top: 4px;">
-                            {'Önceki duraktan: <b>' + str(s['walk_from_prev_min']) + ' dk</b> (' + str(s['walk_from_prev_m']) + ' m) yürüme' if s['order'] > 0 else 'Başlangıç noktası'}
-                            • Açılış Durumu: <code>{s['opening_hours_label']}</code>
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
+                done_badge = ' <span style="color:#10b981; font-weight:700;">(Tamamlandı ✅)</span>' if is_done else ""
+                walk_info = (
+                    f"Önceki duraktan: <b>{s['walk_from_prev_min']} dk</b> ({s['walk_from_prev_m']} m) yürüme"
+                    if s["order"] > 0
+                    else "Başlangıç noktası"
                 )
+                stop_card_html = (
+                    f'<div style="border-left: 6px solid {border_color}; background: {bg_color}; '
+                    f'padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">'
+                    f'<div style="display: flex; justify-content: space-between; align-items: center;">'
+                    f'<div>'
+                    f'<span style="font-size: 14px; font-weight: 700; color: #0f172a;">'
+                    f'{s["arrival_time"]} – {s["departure_time"]} | {s["order"]}. {s["name"]}'
+                    f'</span>{done_badge}'
+                    f'</div>'
+                    f'<span style="background: {border_color}; color: white; font-size: 11px; '
+                    f'font-weight: 700; padding: 2px 10px; border-radius: 9999px;">{theme["badge"]}</span>'
+                    f'</div>'
+                    f'<div style="font-size: 12px; color: #475569; margin-top: 4px;">'
+                    f'{walk_info} • Açılış Durumu: <code>{s["opening_hours_label"]}</code>'
+                    f'</div>'
+                    f'</div>'
+                )
+                st.markdown(stop_card_html, unsafe_allow_html=True)
 
                 # Kontrol butonları ve kalış süresi girişi
                 btn_c1, btn_c2, btn_c3 = st.columns([2.5, 1.2, 1.3])
@@ -937,11 +943,14 @@ def main() -> None:
                     width="stretch",
                 ):
                     new_res = recalculate_trip(
-                        parsed_request_dict=plan["parsed_request"],
+                        parsed_request_dict=active_plan["parsed_request"],
                         custom_durations=updated_durations,
                         removed_venue_ids=st.session_state.get("removed_stop_ids", []),
                     )
-                    st.session_state["current_plan"] = new_res.model_dump()
+                    if active_plan is day2_plan:
+                        st.session_state["day2_plan"] = new_res.model_dump()
+                    else:
+                        st.session_state["current_plan"] = new_res.model_dump()
                     st.rerun()
 
                 if completed_ids and bcol2.button(
@@ -951,12 +960,12 @@ def main() -> None:
                     last_done_stop = next(
                         (
                             s
-                            for s in reversed(plan["stops"])
+                            for s in reversed(active_plan["stops"])
                             if s["venue_id"] in completed_ids
                         ),
                         None,
                     )
-                    mod_req = dict(plan["parsed_request"])
+                    mod_req = dict(active_plan["parsed_request"])
                     if last_done_stop:
                         mod_req["start_venue_id"] = last_done_stop["venue_id"]
                         mod_req["start_time"] = last_done_stop["departure_time"]
@@ -969,27 +978,31 @@ def main() -> None:
                         removed_venue_ids=all_excluded,
                     )
                     st.session_state["completed_stop_ids"] = []
-                    st.session_state["current_plan"] = new_res.model_dump()
+                    if active_plan is day2_plan:
+                        st.session_state["day2_plan"] = new_res.model_dump()
+                    else:
+                        st.session_state["current_plan"] = new_res.model_dump()
                     st.rerun()
 
         with right_col:
             st.subheader("🗺️ Renk Kodlu Yürüyüş Haritası")
-            deck = _build_pydeck_map(plan, use_street_routing=use_street_geom)
+            deck = _build_pydeck_map(active_plan, use_street_routing=use_street_geom)
             st.pydeck_chart(deck, width="stretch", height=580)
             st.link_button(
                 "🧭 Rotayı Google Haritalar'da Yaya Olarak Aç",
-                _google_maps_walking_url(plan),
+                _google_maps_walking_url(active_plan),
                 width="stretch",
             )
 
     with tab_slide5:
         st.subheader("📋 Slayt 5 Formatında Sade Zaman Çizelgesi")
-        slide5_text = _format_slide5_schedule(plan)
+        slide5_text = _format_slide5_schedule(active_plan)
         st.code(slide5_text, language="text")
+        day_tag = active_plan.get("day_of_week", "rota")
         st.download_button(
             "📥 Gezi Planını Metin (.txt) Olarak İndir",
             data=slide5_text,
-            file_name="kocaeli_gezi_plani.txt",
+            file_name=f"kocaeli_gezi_plani_{day_tag}.txt",
             mime="text/plain",
         )
 
@@ -997,13 +1010,29 @@ def main() -> None:
         day2_plan = st.session_state.get("day2_plan")
         if not day2_plan:
             st.info(
-                "2 günlük gezi planı görmek için formda **İsteğe Bağlı Detaylı Filtreler → Gün Sayısı: 2** seçip **Rota Oluştur** butonuna tıklayın."
+                "2 günlük gezi planı görmek için formda **2 Günlük Gezi (Hafta Sonu)** seçeneğini işaretleyebilir veya arama kutusuna örneğin *'Cumartesi ve Pazar iki günlük gezi planı yap'* yazabilirsiniz."
             )
         else:
-            st.subheader("📅 2. Gün Gezi Planı (1. Gün Gezilen Mekanlar Hariç)")
-            st.code(_format_slide5_schedule(day2_plan), language="text")
+            d1_tr = DAY_LABELS_TR.get(plan.get("day_of_week", "Sat"), "1. Gün")
+            d2_tr = DAY_LABELS_TR.get(day2_plan.get("day_of_week", "Sun"), "2. Gün")
+            st.subheader("📅 2 Günlük Hafta Sonu Gezi Özeti")
+            tot_walk = plan["total_walk_min"] + day2_plan["total_walk_min"]
+            tot_km = round(plan["total_walk_km"] + day2_plan["total_walk_km"], 2)
+            p1_count = sum(1 for s in plan["stops"] if not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch"))
+            p2_count = sum(1 for s in day2_plan["stops"] if not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch"))
+            st.success(
+                f"🎉 **Hafta Sonu Toplamı:** {tot_walk} dk yürüme | {tot_km} km mesafe | 2 ayrı öğle yemeği molası | Toplam {p1_count + p2_count} farklı mekan ziyareti!"
+            )
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown(f"#### 1. Gün Çizelgesi ({d1_tr})")
+                st.code(_format_slide5_schedule(plan), language="text")
+            with col_b:
+                st.markdown(f"#### 2. Gün Çizelgesi ({d2_tr})")
+                st.code(_format_slide5_schedule(day2_plan), language="text")
+            st.markdown(f"#### 2. Gün Yürüyüş Haritası ({d2_tr})")
             deck2 = _build_pydeck_map(day2_plan, use_street_routing=use_street_geom)
-            st.pydeck_chart(deck2, width="stretch", height=480)
+            st.pydeck_chart(deck2, width="stretch", height=440)
 
 
 if __name__ == "__main__":

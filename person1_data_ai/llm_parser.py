@@ -16,7 +16,15 @@ load_dotenv()
 class _LLMParseSchema(BaseModel):
     day_of_week: str = Field(
         default="Sat",
-        description="Haftanın günü: Mon, Tue, Wed, Thu, Fri, Sat veya Sun. Belirtilmemişse Sat.",
+        description="Haftanın başlangıç günü: Mon, Tue, Wed, Thu, Fri, Sat veya Sun. Belirtilmemişse Sat.",
+    )
+    num_days: int = Field(
+        default=1,
+        description="Gezi gün sayısı: 1 (günübirlik) veya 2 (iki günlük / hafta sonu).",
+    )
+    plan_days: List[str] = Field(
+        default_factory=list,
+        description="Planlanan günler listesi, örn: ['Sat', 'Sun'] veya ['Sat'].",
     )
     start_venue_id: str = Field(description="Başlangıç noktası venue_id (yalnızca listeden).")
     end_venue_id: str = Field(description="Bitiş noktası venue_id (yalnızca listeden).")
@@ -60,7 +68,7 @@ def _fallback_parse(
     pois = [v for v in venues if not v.get("is_restaurant", False)]
     poi_ids = {v["id"] for v in pois}
 
-    # Gün tespiti (cumartesi içinde 'cuma' geçmesini önlemek için kelime sınırı kullan)
+    # Gün ve Gün Sayısı tespiti (cumartesi içinde 'cuma' geçmesini önlemek için kelime sınırı kullan)
     day_map = [
         ("pazartesi", "Mon"),
         ("sali", "Tue"),
@@ -70,11 +78,34 @@ def _fallback_parse(
         ("cuma", "Fri"),
         ("pazar", "Sun"),
     ]
-    day_of_week = "Sat"
+    next_day_map = {
+        "Mon": "Tue", "Tue": "Wed", "Wed": "Thu", "Thu": "Fri", "Fri": "Sat", "Sat": "Sun", "Sun": "Mon"
+    }
+
+    multi_day_cues = [
+        r"\b2\s*gun\b", r"\biki\s*gun\b", r"\b2\s*gunluk\b", r"\biki\s*gunluk\b",
+        r"\bhaftasonu\b", r"\bhafta\s*sonu\b", r"\bcumartesi\s+(?:ve\s+)?pazar\b"
+    ]
+    is_multi_day = any(re.search(cue, norm_text) for cue in multi_day_cues)
+    num_days = 2 if is_multi_day else 1
+
+    found_days: List[str] = []
     for tr_day, code in day_map:
         if re.search(rf"\b{tr_day}\b", norm_text):
-            day_of_week = code
-            break
+            found_days.append(code)
+
+    day_of_week = found_days[0] if found_days else "Sat"
+
+    if num_days == 2:
+        if len(found_days) >= 2:
+            plan_days = [found_days[0], found_days[1]]
+        elif "hafta sonu" in norm_text or "haftasonu" in norm_text:
+            plan_days = ["Sat", "Sun"]
+            day_of_week = "Sat"
+        else:
+            plan_days = [day_of_week, next_day_map.get(day_of_week, "Sun")]
+    else:
+        plan_days = [day_of_week]
 
     # Saat tespiti (örn: 09.30, 09:30, 17:00)
     times = re.findall(r"\b(\d{1,2})[:.](\d{2})\b", user_text)
@@ -193,6 +224,13 @@ def _fallback_parse(
     if not selected_ids:
         selected_ids = [v["id"] for v in pois if v.get("category") != "baslangic_bitis"][:5]
 
+    if num_days == 2 and len(selected_ids) < 8:
+        for v in pois:
+            if v["id"] not in selected_ids and v.get("category") != "baslangic_bitis":
+                selected_ids.append(v["id"])
+                if len(selected_ids) >= 9:
+                    break
+
     unmatched: List[str] = []
     if any(k in norm_text for k in ["metro", "otobus", "tramvay", "toplu tasima", "vapur"]):
         unmatched.append("Not: Bu planlayıcı yalnızca yürüyüş rotaları içindir (toplu taşıma kapsam dışıdır).")
@@ -202,6 +240,8 @@ def _fallback_parse(
     return {
         "city": venues[0].get("city", "Kocaeli") if venues else "Kocaeli",
         "day_of_week": day_of_week,
+        "num_days": num_days,
+        "plan_days": plan_days,
         "start_venue_id": start_id,
         "end_venue_id": end_id,
         "start_time": start_time,
@@ -251,8 +291,9 @@ def parse_user_request(
                 "KESİN KURALLAR:\n"
                 "1. start_venue_id, end_venue_id ve selected_venue_ids alanlarında "
                 "YALNIZCA verilen katalogdaki 'id' değerlerini kullan. Asla yeni mekan uydurma.\n"
-                "2. Saat veya rota sırası hesaplama; sadece kullanıcının istediği saat aralığını ve uygun mekan ID'lerini seç.\n"
-                "3. Kullanıcı listede olmayan bir şehir dışı mekan veya toplu taşıma isterse unmatched_notes içine kısa Türkçe not yaz.\n\n"
+                "2. Kullanıcı 2 günlük veya hafta sonu gezisi istiyorsa num_days: 2 ve plan_days: ['Sat', 'Sun'] (veya belirtilen günler) yap. Tek gün ise num_days: 1 yap.\n"
+                "3. Saat veya rota sırası hesaplama; sadece kullanıcının istediği saat aralığını ve uygun mekan ID'lerini seç.\n"
+                "4. Kullanıcı listede olmayan bir şehir dışı mekan veya toplu taşıma isterse unmatched_notes içine kısa Türkçe not yaz.\n\n"
                 f"MEKAN KATALOĞU:\n{json.dumps(compact_catalog, ensure_ascii=False)}\n\n"
                 f"KULLANICI İSTEĞİ:\n{user_text}"
             )
@@ -304,6 +345,8 @@ def parse_user_request(
             "end_time",
             "want_lunch",
             "food_preference",
+            "num_days",
+            "plan_days",
         ):
             val = overrides.get(field)
             if val is not None and val != "":

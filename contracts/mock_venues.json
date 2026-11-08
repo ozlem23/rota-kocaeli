@@ -5,7 +5,12 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "baslangic_bitis",
-    "tags": ["ulaşım", "tarihi yapı", "başlangıç", "gar"],
+    "tags": [
+      "ulaşım",
+      "tarihi yapı",
+      "başlangıç",
+      "gar"
+    ],
     "lat": 40.7642,
     "lon": 29.9234,
     "default_stay_min": 0,
@@ -15,7 +20,8 @@
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/%C4%B0zmit_Gar%C4%B1",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": "arkeoloji_muzesi",
@@ -23,21 +29,29 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "muze",
-    "tags": ["müze", "tarih", "arkeoloji", "kültür"],
+    "tags": [
+      "müze",
+      "tarih",
+      "arkeoloji",
+      "kültür"
+    ],
     "lat": 40.7634,
     "lon": 29.9197,
     "default_stay_min": 75,
     "opening_hours": {
       "open_time": "08:30",
       "close_time": "17:00",
-      "closed_days": ["Mon"]
+      "closed_days": [
+        "Mon"
+      ]
     },
     "opening_hours_note": "Pazartesi günleri kapalıdır (08:30-17:00)",
     "description_short": "Eski gar binalarının restore edilmesiyle oluşturulan müzede Paleolitik dönemden Osmanlı'ya uzanan eserler sergilenir.",
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/Kocaeli_Arkeoloji_ve_Etnografya_M%C3%BCzesi",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": "seka_kagit_muzesi",
@@ -45,21 +59,29 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "muze",
-    "tags": ["müze", "sanayi tarihi", "kültür", "tarih"],
+    "tags": [
+      "müze",
+      "sanayi tarihi",
+      "kültür",
+      "tarih"
+    ],
     "lat": 40.7615,
     "lon": 29.9082,
     "default_stay_min": 75,
     "opening_hours": {
       "open_time": "09:00",
       "close_time": "17:30",
-      "closed_days": ["Mon"]
+      "closed_days": [
+        "Mon"
+      ]
     },
     "opening_hours_note": "Pazartesi günleri kapalıdır (09:00-17:30)",
     "description_short": "Türkiye'nin ilk kağıt fabrikası SEKA yerleşkesinde kurulan dünyanın en büyük kağıt müzelerinden biridir.",
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/SEKA_Ka%C4%9F%C4%B1t_M%C3%BCzesi",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": "saat_kulesi",
@@ -67,7 +89,12 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "anit_saat_kulesi",
-    "tags": ["anıt", "tarihi yapı", "manzara", "simge"],
+    "tags": [
+      "anıt",
+      "tarihi yapı",
+      "manzara",
+      "simge"
+    ],
     "lat": 40.7655,
     "lon": 29.9173,
     "default_stay_min": 15,
@@ -77,7 +104,8 @@
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/%C4%B0zmit_Saat_Kulesi",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": "kasri_humayun",
@@ -85,21 +113,29 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "konak_kosk",
-    "tags": ["müze", "tarihi yapı", "köşk", "osmanlı"],
+    "tags": [
+      "müze",
+      "tarihi yapı",
+      "köşk",
+      "osmanlı"
+    ],
     "lat": 40.7652,
     "lon": 29.9195,
     "default_stay_min": 30,
     "opening_hours": {
       "open_time": "09:00",
       "close_time": "17:00",
-      "closed_days": ["Mon"]
+      "closed_days": [
+        "Mon"
+      ]
     },
     "opening_hours_note": "Pazartesi kapalı (09:00-17:00)",
     "description_short": "Sultan Abdülaziz döneminde inşa edilen ve Mustafa Kemal Atatürk'ün basın toplantısına ev sahipliği yapan saray köşküdür.",
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/%C4%B0zmit_Kasr-%C4%B1_H%C3%BCmayunu",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": "sirri_pasa_konagi",
@@ -107,7 +143,12 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "konak_kosk",
-    "tags": ["tarihi yapı", "konak", "mimari", "kültür"],
+    "tags": [
+      "tarihi yapı",
+      "konak",
+      "mimari",
+      "kültür"
+    ],
     "lat": 40.7671,
     "lon": 29.9197,
     "default_stay_min": 30,
@@ -121,7 +162,8 @@
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/S%C4%B1rr%C4%B1_Pa%C5%9Fa_Kona%C4%9F%C4%B1",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": "fevziye_camii",
@@ -129,7 +171,12 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "cami",
-    "tags": ["cami", "tarihi yapı", "osmanlı", "inanç"],
+    "tags": [
+      "cami",
+      "tarihi yapı",
+      "osmanlı",
+      "inanç"
+    ],
     "lat": 40.7647,
     "lon": 29.9278,
     "default_stay_min": 20,
@@ -143,7 +190,8 @@
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/Fevziye_Camii",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": "gayret_gemi_muzesi",
@@ -151,21 +199,29 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "muze",
-    "tags": ["müze", "denizcilik", "sahil", "tarih"],
+    "tags": [
+      "müze",
+      "denizcilik",
+      "sahil",
+      "tarih"
+    ],
     "lat": 40.7618,
     "lon": 29.9163,
     "default_stay_min": 45,
     "opening_hours": {
       "open_time": "09:00",
       "close_time": "17:00",
-      "closed_days": ["Mon"]
+      "closed_days": [
+        "Mon"
+      ]
     },
     "opening_hours_note": "Pazartesi kapalı (09:00-17:00)",
     "description_short": "Türk Deniz Kuvvetleri'nde uzun yıllar görev yaptıktan sonra İzmit sahilinde müze gemiye dönüştürülmüş muhriptir.",
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/TCG_Gayret_(D-352)",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": "yeni_cuma_camii",
@@ -173,7 +229,12 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "cami",
-    "tags": ["cami", "tarihi yapı", "mimar sinan", "osmanlı"],
+    "tags": [
+      "cami",
+      "tarihi yapı",
+      "mimar sinan",
+      "osmanlı"
+    ],
     "lat": 40.7639,
     "lon": 29.9317,
     "default_stay_min": 20,
@@ -183,7 +244,8 @@
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/Pertev_Mehmet_Pa%C5%9Fa_Camii_(%C4%B0zmit)",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&auto=format&fit=crop&q=80"
   },
   {
     "id": "sekapark_sahil",
@@ -191,7 +253,12 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "park_sahil",
-    "tags": ["park", "sahil", "doğa", "yürüyüş"],
+    "tags": [
+      "park",
+      "sahil",
+      "doğa",
+      "yürüyüş"
+    ],
     "lat": 40.7601,
     "lon": 29.9125,
     "default_stay_min": 40,
@@ -201,7 +268,8 @@
     "source_name": "Wikipedia",
     "source_url": "https://tr.wikipedia.org/wiki/Sekapark",
     "price_range": null,
-    "is_restaurant": false
+    "is_restaurant": false,
+    "image_url": null
   },
   {
     "id": "rest_fevziye_kofte",
@@ -209,9 +277,15 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "restoran",
-    "tags": ["köfte", "izgara", "türk mutfağı", "esnaf", "öğle yemeği"],
+    "tags": [
+      "köfte",
+      "izgara",
+      "türk mutfağı",
+      "esnaf",
+      "öğle yemeği"
+    ],
     "lat": 40.7649,
-    "lon": 29.9270,
+    "lon": 29.927,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "10:30",
@@ -223,7 +297,8 @@
     "source_name": "OpenStreetMap",
     "source_url": "https://www.openstreetmap.org",
     "price_range": "Orta (₺₺)",
-    "is_restaurant": true
+    "is_restaurant": true,
+    "image_url": null
   },
   {
     "id": "rest_yuruyus_pide",
@@ -231,7 +306,13 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "restoran",
-    "tags": ["pide", "kebap", "türk mutfağı", "fırın", "öğle yemeği"],
+    "tags": [
+      "pide",
+      "kebap",
+      "türk mutfağı",
+      "fırın",
+      "öğle yemeği"
+    ],
     "lat": 40.7645,
     "lon": 29.9287,
     "default_stay_min": 60,
@@ -245,7 +326,8 @@
     "source_name": "OpenStreetMap",
     "source_url": "https://www.openstreetmap.org",
     "price_range": "Uygun-Orta (₺₺)",
-    "is_restaurant": true
+    "is_restaurant": true,
+    "image_url": null
   },
   {
     "id": "rest_cumhuriyet_ev",
@@ -253,7 +335,13 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "restoran",
-    "tags": ["ev yemekleri", "türk mutfağı", "zeytinyağlı", "vejetaryen", "çorba"],
+    "tags": [
+      "ev yemekleri",
+      "türk mutfağı",
+      "zeytinyağlı",
+      "vejetaryen",
+      "çorba"
+    ],
     "lat": 40.7644,
     "lon": 29.9254,
     "default_stay_min": 60,
@@ -263,7 +351,8 @@
     "source_name": "OpenStreetMap",
     "source_url": "https://www.openstreetmap.org",
     "price_range": "Uygun (₺)",
-    "is_restaurant": true
+    "is_restaurant": true,
+    "image_url": null
   },
   {
     "id": "rest_kultur_tepesi",
@@ -271,7 +360,13 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "restoran",
-    "tags": ["türk mutfağı", "kahvaltı", "kafe", "mantı", "öğle yemeği"],
+    "tags": [
+      "türk mutfağı",
+      "kahvaltı",
+      "kafe",
+      "mantı",
+      "öğle yemeği"
+    ],
     "lat": 40.7656,
     "lon": 29.9184,
     "default_stay_min": 60,
@@ -285,7 +380,8 @@
     "source_name": "OpenStreetMap",
     "source_url": "https://www.openstreetmap.org",
     "price_range": "Orta (₺₺)",
-    "is_restaurant": true
+    "is_restaurant": true,
+    "image_url": null
   },
   {
     "id": "rest_seka_balik",
@@ -293,7 +389,13 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "restoran",
-    "tags": ["balık", "deniz ürünleri", "salata", "sahil", "manzara"],
+    "tags": [
+      "balık",
+      "deniz ürünleri",
+      "salata",
+      "sahil",
+      "manzara"
+    ],
     "lat": 40.7607,
     "lon": 29.9138,
     "default_stay_min": 60,
@@ -307,7 +409,8 @@
     "source_name": "OpenStreetMap",
     "source_url": "https://www.openstreetmap.org",
     "price_range": "Orta-Yüksek (₺₺₺)",
-    "is_restaurant": true
+    "is_restaurant": true,
+    "image_url": null
   },
   {
     "id": "rest_izmit_iskender",
@@ -315,9 +418,16 @@
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "restoran",
-    "tags": ["iskender", "döner", "kebap", "türk mutfağı", "et", "öğle yemeği"],
+    "tags": [
+      "iskender",
+      "döner",
+      "kebap",
+      "türk mutfağı",
+      "et",
+      "öğle yemeği"
+    ],
     "lat": 40.7648,
-    "lon": 29.9220,
+    "lon": 29.922,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "11:00",
@@ -329,7 +439,7 @@
     "source_name": "OpenStreetMap",
     "source_url": "https://www.openstreetmap.org",
     "price_range": "Orta (₺₺)",
-    "is_restaurant": true
+    "is_restaurant": true,
+    "image_url": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80"
   }
 ]
-

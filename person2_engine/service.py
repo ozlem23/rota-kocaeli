@@ -69,7 +69,39 @@ def plan_trip(user_text: str, overrides: Optional[Dict[str, object]] = None) -> 
             str(k): int(v) for k, v in overrides["custom_durations"].items()
         }
 
-    calculated = build_schedule(parsed, venues_by_id, matrix, custom_durations)
+    # 2 Günlük / Çoklu Günlük Planlama Desteği
+    if parsed.num_days == 2:
+        # Mekanları iki güne dengeli paylaştır (Müzeler/Batı koridoru 1. gün, Konaklar/Camiler/Sahil 2. gün)
+        all_pois = list(parsed.selected_venue_ids)
+        half = (len(all_pois) + 1) // 2
+        day1_pois = all_pois[:half]
+        day2_pois = all_pois[half:]
+
+        day1_req = parsed.model_copy(update={"selected_venue_ids": day1_pois, "num_days": 1})
+        calculated = build_schedule(day1_req, venues_by_id, matrix, custom_durations)
+
+        next_day_map = {
+            "Mon": "Tue", "Tue": "Wed", "Wed": "Thu", "Thu": "Fri", "Fri": "Sat", "Sat": "Sun", "Sun": "Mon"
+        }
+        day2_day = (
+            parsed.plan_days[1]
+            if len(parsed.plan_days) >= 2
+            else next_day_map.get(parsed.day_of_week, "Sun")
+        )
+
+        day2_req = parsed.model_copy(
+            update={
+                "day_of_week": day2_day,
+                "num_days": 1,
+                "plan_days": [day2_day],
+                "selected_venue_ids": day2_pois,
+            }
+        )
+        day2_calculated = build_schedule(day2_req, venues_by_id, matrix, custom_durations)
+        calculated.day2_plan = day2_calculated
+    else:
+        calculated = build_schedule(parsed, venues_by_id, matrix, custom_durations)
+
     # LLM kullanımını minimize etmek için anlatım katmanı varsayılan olarak
     # önceden indirilmiş Wikipedia/OSM açıklamalarını ve kesin hesaplanan sayıları kullanır (0 LLM çağrısı).
     use_narrator_llm = os.getenv("ENABLE_NARRATOR_LLM", "false").lower() == "true"

@@ -80,3 +80,4 @@
 * **Toplu Taşıma:** Sistem yalnızca yaya rotalarını destekler; tramvay, vapur veya otobüs aktarmalarını hesaplamaz.
 * **Açılış Saati Bilinmeyen Mekanlar:** OpenStreetMap üzerinde açılış saati girilmemiş tarihi çeşme, saat kulesi veya anıtlar için saat uydurulmaz; açıkça *"Açılış saati bilinmiyor"* uyarısı verilir.
 * **Katalog Sınırı:** İnternetten serbest mekan araması yapılmaz; halüsinasyon riskini sıfırlamak için yalnızca doğrulanmış `venues.json` listesindeki mekanlar ve restoranlar kullanılır.
+

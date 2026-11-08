@@ -54,11 +54,14 @@ class Venue(BaseModel):
     source_url: str = ""
     price_range: Optional[str] = None
     is_restaurant: bool = False
+    image_url: Optional[str] = None
 
 
 class ParsedRequest(BaseModel):
     city: str = "Kocaeli"
     day_of_week: Literal["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] = "Sat"
+    num_days: int = 1
+    plan_days: List[str] = Field(default_factory=list)
     start_venue_id: str
     end_venue_id: str
     start_time: str = "09:30"
@@ -131,6 +134,7 @@ class CalculatedPlan(BaseModel):
     dropped_venues: List[DroppedVenue] = Field(default_factory=list)
     route_coords: List[List[float]] = Field(default_factory=list)
     parsed_request: ParsedRequest
+    day2_plan: Optional[CalculatedPlan] = None
 
 
 class FinalResponse(CalculatedPlan):

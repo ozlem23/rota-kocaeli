@@ -20,7 +20,7 @@ class _LLMParseSchema(BaseModel):
     )
     num_days: int = Field(
         default=1,
-        description="Gezi gün sayısı: 1 (günübirlik) veya 2 (iki günlük / hafta sonu).",
+        description="Gezi gün sayısı: 1 (günübirlik), 2 veya 3 (birkaç günlük / hafta sonu).",
     )
     plan_days: List[str] = Field(
         default_factory=list,
@@ -82,28 +82,41 @@ def _fallback_parse(
         "Mon": "Tue", "Tue": "Wed", "Wed": "Thu", "Thu": "Fri", "Fri": "Sat", "Sat": "Sun", "Sun": "Mon"
     }
 
-    multi_day_cues = [
-        r"\b2\s*gun\b", r"\biki\s*gun\b", r"\b2\s*gunluk\b", r"\biki\s*gunluk\b",
-        r"\bhaftasonu\b", r"\bhafta\s*sonu\b", r"\bcumartesi\s+(?:ve\s+)?pazar\b"
+    multi_day_3_cues = [
+        r"\b3\s*gun\b", r"\buc\s*gun\b", r"\b3\s*gunluk\b", r"\buc\s*gunluk\b",
+        r"\bbirkac\s*gun\b", r"\bbirkac\s*gunluk\b",
     ]
-    is_multi_day = any(re.search(cue, norm_text) for cue in multi_day_cues)
-    num_days = 2 if is_multi_day else 1
+    multi_day_2_cues = [
+        r"\b2\s*gun\b", r"\biki\s*gun\b", r"\b2\s*gunluk\b", r"\biki\s*gunluk\b",
+        r"\bhaftasonu\b", r"\bhafta\s*sonu\b", r"\bcumartesi\s+(?:ve\s+)?pazar\b",
+    ]
 
     found_days: List[str] = []
     for tr_day, code in day_map:
         if re.search(rf"\b{tr_day}\b", norm_text):
             found_days.append(code)
 
-    day_of_week = found_days[0] if found_days else "Sat"
+    if any(re.search(cue, norm_text) for cue in multi_day_3_cues) or len(found_days) >= 3:
+        num_days = 3
+    elif any(re.search(cue, norm_text) for cue in multi_day_2_cues) or len(found_days) == 2:
+        num_days = 2
+    else:
+        num_days = 1
 
-    if num_days == 2:
-        if len(found_days) >= 2:
-            plan_days = [found_days[0], found_days[1]]
-        elif "hafta sonu" in norm_text or "haftasonu" in norm_text:
+    day_of_week = found_days[0] if found_days else ("Fri" if num_days == 3 else "Sat")
+
+    if num_days >= 2:
+        if len(found_days) >= num_days:
+            plan_days = found_days[:num_days]
+        elif num_days == 2 and ("hafta sonu" in norm_text or "haftasonu" in norm_text):
             plan_days = ["Sat", "Sun"]
             day_of_week = "Sat"
         else:
-            plan_days = [day_of_week, next_day_map.get(day_of_week, "Sun")]
+            plan_days = [day_of_week]
+            cur = day_of_week
+            for _ in range(num_days - 1):
+                cur = next_day_map.get(cur, "Sun")
+                plan_days.append(cur)
     else:
         plan_days = [day_of_week]
 
@@ -113,30 +126,50 @@ def _fallback_parse(
     start_time = formatted_times[0] if len(formatted_times) >= 1 else "09:30"
     end_time = formatted_times[1] if len(formatted_times) >= 2 else "17:00"
 
-    # Başlangıç / bitiş noktası eşleştirme
+    # Başlangıç / bitiş / konaklama noktası eşleştirme
     default_start = "eski_gar" if "eski_gar" in poi_ids else pois[0]["id"]
     mentioned_positions: List[Tuple[int, str]] = []
     for v in pois:
         v_norm = _norm(v["name"])
-        idx = norm_text.find(v_norm)
-        if idx == -1 and v["id"] == "eski_gar":
-            idx = norm_text.find("eski gar")
-        if idx == -1 and v["id"] == "kasri_humayun":
-            idx = norm_text.find("kasr-i humayun")
-        if idx == -1:
-            tokens = [t for t in v_norm.split() if len(t) > 3]
-            if len(tokens) >= 2 and all(t in norm_text for t in tokens[:2]):
-                idx = norm_text.find(tokens[0])
+        idx = -1
+        if v.get("category") == "konaklama":
+            if v["id"] == "hotel_sekapark":
+                for pat in ("seka park otel", "sekapark otel"):
+                    idx = norm_text.find(pat)
+                    if idx != -1:
+                        break
+            elif v["id"] == "hotel_asya":
+                for pat in ("otel asya", "asya otel"):
+                    idx = norm_text.find(pat)
+                    if idx != -1:
+                        break
+            else:
+                idx = norm_text.find(v_norm)
+        else:
+            idx = norm_text.find(v_norm)
+            if idx == -1 and v["id"] == "eski_gar":
+                idx = norm_text.find("eski gar")
+            if idx == -1 and v["id"] == "kasri_humayun":
+                idx = norm_text.find("kasr-i humayun")
+            if idx == -1:
+                tokens = [t for t in v_norm.split() if len(t) > 3 and t not in ("izmit", "merkez")]
+                if len(tokens) >= 2 and all(t in norm_text for t in tokens[:2]):
+                    idx = norm_text.find(tokens[0])
         if idx != -1:
             mentioned_positions.append((idx, v["id"]))
 
     mentioned_positions.sort(key=lambda item: item[0])
     mentioned_pois = [vid for _, vid in mentioned_positions]
+    pois_by_id = {v["id"]: v for v in pois}
+    mentioned_hotels = [vid for vid in mentioned_pois if pois_by_id[vid].get("category") == "konaklama"]
 
-    has_start_cue = any(cue in norm_text for cue in ["basla", "dayim", "deyim", "cikis"])
+    has_start_cue = any(cue in norm_text for cue in ["basla", "dayim", "deyim", "cikis", "konakla", "kalacag", "otel"])
     has_return_same = any(cue in norm_text for cue in ["oraya don", "ayni yer", "orada bitir", "geri don"])
 
-    if has_start_cue and mentioned_pois:
+    if mentioned_hotels:
+        start_id = mentioned_hotels[0]
+        end_id = mentioned_hotels[0]
+    elif has_start_cue and mentioned_pois:
         start_id = mentioned_pois[0]
         if has_return_same or len(mentioned_pois) < 2:
             end_id = start_id
@@ -207,28 +240,31 @@ def _fallback_parse(
     if not interests:
         interests = ["muze", "tarihi yapi"]
 
-    explicit_visits = [vid for vid in mentioned_pois if vid not in (start_id, end_id)]
+    hub_categories = {"baslangic_bitis", "konaklama"}
+    explicit_visits = [
+        vid
+        for vid in mentioned_pois
+        if vid not in (start_id, end_id) and pois_by_id[vid].get("category") not in hub_categories
+    ]
     if "sadece" in norm_text and explicit_visits:
         selected_ids = explicit_visits
     else:
         selected_ids = list(explicit_visits)
         for v in pois:
-            if v["id"] in selected_ids or (
-                v["id"] in (start_id, end_id) and v.get("category") == "baslangic_bitis"
-            ):
+            if v["id"] in selected_ids or v.get("category") in hub_categories:
                 continue
             v_search = _norm(" ".join([v["name"], v["category"], *v.get("tags", [])]))
             if any(_norm(intr) in v_search or any(w in v_search for w in _norm(intr).split()) for intr in interests):
                 selected_ids.append(v["id"])
 
     if not selected_ids:
-        selected_ids = [v["id"] for v in pois if v.get("category") != "baslangic_bitis"][:5]
+        selected_ids = [v["id"] for v in pois if v.get("category") not in hub_categories][:5]
 
-    if num_days == 2 and len(selected_ids) < 8:
+    if num_days >= 2 and len(selected_ids) < 9:
         for v in pois:
-            if v["id"] not in selected_ids and v.get("category") != "baslangic_bitis":
+            if v["id"] not in selected_ids and v.get("category") not in hub_categories:
                 selected_ids.append(v["id"])
-                if len(selected_ids) >= 9:
+                if len(selected_ids) >= (9 if num_days == 2 else 11):
                     break
 
     unmatched: List[str] = []
@@ -267,6 +303,9 @@ def parse_user_request(
     Dönüş: (parsed_request_dict, used_llm_bool)
     """
     valid_poi_ids = {v["id"] for v in venues if not v.get("is_restaurant", False)}
+    hub_ids = {
+        v["id"] for v in venues if v.get("category") in {"baslangic_bitis", "konaklama"}
+    }
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
     used_llm = False
     result_dict: Optional[Dict[str, Any]] = None
@@ -291,9 +330,10 @@ def parse_user_request(
                 "KESİN KURALLAR:\n"
                 "1. start_venue_id, end_venue_id ve selected_venue_ids alanlarında "
                 "YALNIZCA verilen katalogdaki 'id' değerlerini kullan. Asla yeni mekan uydurma.\n"
-                "2. Kullanıcı 2 günlük veya hafta sonu gezisi istiyorsa num_days: 2 ve plan_days: ['Sat', 'Sun'] (veya belirtilen günler) yap. Tek gün ise num_days: 1 yap.\n"
-                "3. Saat veya rota sırası hesaplama; sadece kullanıcının istediği saat aralığını ve uygun mekan ID'lerini seç.\n"
-                "4. Kullanıcı listede olmayan bir şehir dışı mekan veya toplu taşıma isterse unmatched_notes içine kısa Türkçe not yaz.\n\n"
+                "2. Kullanıcı 2 veya 3 günlük (hafta sonu / birkaç günlük) gezisi istiyorsa num_days alanını 2 ya da 3 yap ve plan_days listesini ona göre doldur (örn. ['Sat', 'Sun']). Tek gün ise num_days: 1 yap.\n"
+                "3. Otel/konaklama seçildiyse hem start_venue_id hem end_venue_id yap ama selected_venue_ids içine otel koyma.\n"
+                "4. Saat veya rota sırası hesaplama; sadece kullanıcının istediği saat aralığını ve uygun mekan ID'lerini seç.\n"
+                "5. Kullanıcı listede olmayan bir şehir dışı mekan veya toplu taşıma isterse unmatched_notes içine kısa Türkçe not yaz.\n\n"
                 f"MEKAN KATALOĞU:\n{json.dumps(compact_catalog, ensure_ascii=False)}\n\n"
                 f"KULLANICI İSTEĞİ:\n{user_text}"
             )
@@ -328,8 +368,9 @@ def parse_user_request(
         result_dict["end_venue_id"] = result_dict["start_venue_id"]
 
     result_dict["selected_venue_ids"] = [
-        vid for vid in dict.fromkeys(result_dict.get("selected_venue_ids", []))
-        if vid in valid_poi_ids
+        vid
+        for vid in dict.fromkeys(result_dict.get("selected_venue_ids", []))
+        if vid in valid_poi_ids and vid not in hub_ids
     ]
 
     if result_dict.get("day_of_week") not in {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}:
@@ -353,6 +394,168 @@ def parse_user_request(
                 if field in ("start_venue_id", "end_venue_id") and val not in valid_poi_ids:
                     continue
                 result_dict[field] = val
+
+    validated = ParsedRequest.model_validate(result_dict)
+    return validated.model_dump(), used_llm
+
+
+def _fallback_update_with_feedback(
+    current_parsed: Dict[str, Any],
+    feedback_text: str,
+    venues: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """
+    Slayt 4 (Alternatif plan): 'daha az müze, daha çok park', mekan ekleme/çıkarma gibi
+    geri bildirimlere göre kısıtları günceller.
+    """
+    updated = dict(current_parsed)
+    selected = list(updated.get("selected_venue_ids", []))
+    interests = list(updated.get("interests", []))
+    norm_fb = _norm(feedback_text)
+
+    non_rest = [v for v in venues if not v.get("is_restaurant", False) and v.get("category") not in {"baslangic_bitis", "konaklama"}]
+    by_id = {v["id"]: v for v in non_rest}
+
+    cat_map = {
+        "muze": ["muze"],
+        "park": ["park", "sahil"],
+        "cami": ["cami"],
+        "konak": ["konak", "kosk", "tarihi yapi"],
+        "anit": ["anit", "saat kulesi"],
+    }
+
+    # 1. 'daha az X' / 'X olmasın' / 'X çıkar'
+    for key, _ in cat_map.items():
+        if re.search(rf"\b(?:daha\s+az\s+{key}|{key}\s*olmasin|{key}(?:leri|lari)?\s*(?:cikar|azalt))", norm_fb):
+            target_cats = {
+                "muze": {"muze"},
+                "park": {"park_sahil"},
+                "cami": {"cami"},
+                "konak": {"konak_kosk"},
+                "anit": {"anit_saat_kulesi"},
+            }[key]
+            matching = [vid for vid in selected if by_id.get(vid, {}).get("category") in target_cats]
+            if f"{key} olmasin" in norm_fb or "cikar" in norm_fb:
+                selected = [vid for vid in selected if vid not in matching]
+                interests = [i for i in interests if key not in _norm(i)]
+            elif len(matching) > 1:
+                # "daha az müze" -> en fazla 1 müze bırak, diğerlerini çıkar
+                drop_set = set(matching[1:])
+                selected = [vid for vid in selected if vid not in drop_set]
+            elif len(matching) == 1:
+                selected = [vid for vid in selected if vid != matching[0]]
+
+    # 2. 'daha çok X' / 'X ekle' / 'X olsun'
+    for key, _ in cat_map.items():
+        if re.search(rf"\b(?:daha\s+cok\s+{key}|cok\s+{key}|{key}(?:ler|lar)?\s*(?:ekle|olsun|istiyorum))", norm_fb):
+            target_cats = {
+                "muze": {"muze"},
+                "park": {"park_sahil"},
+                "cami": {"cami"},
+                "konak": {"konak_kosk"},
+                "anit": {"anit_saat_kulesi"},
+            }[key]
+            for v in non_rest:
+                if v["category"] in target_cats and v["id"] not in selected:
+                    selected.append(v["id"])
+            label = "park" if key == "park" else ("tarihi yapi" if key == "konak" else key)
+            if label not in interests:
+                interests.append(label)
+
+    # 3. İsim bazlı mekan ekleme / çıkarma ("Sırrı Paşa Konağı'nı çıkar" vs "SEKA ekle")
+    for v in non_rest:
+        vn = _norm(v["name"])
+        tokens = [t for t in vn.split() if len(t) > 3]
+        mentioned = vn in norm_fb or (len(tokens) >= 2 and all(t in norm_fb for t in tokens[:2]))
+        if mentioned:
+            if any(w in norm_fb for w in ["cikar", "olmasin", "kaldir", "istemiyorum", "sil"]):
+                selected = [vid for vid in selected if vid != v["id"]]
+            else:
+                if v["id"] not in selected:
+                    selected.append(v["id"])
+
+    # 4. Yemek tercihi veya saat değişikliği
+    if any(p in norm_fb for p in ["yemek olmasin", "yemek istemiyorum", "yemeksiz"]):
+        updated["want_lunch"] = False
+    else:
+        for kw in ["iskender", "kofte", "balik", "pide", "kebap", "ev yemek", "vejetaryen", "kafe", "kahvalti"]:
+            if kw in norm_fb:
+                updated["want_lunch"] = True
+                updated["food_preference"] = kw
+                break
+
+    times = re.findall(r"\b(\d{1,2})[:.](\d{2})\b", feedback_text)
+    if times:
+        h, m = times[-1]
+        if 0 <= int(h) <= 23 and 0 <= int(m) <= 59:
+            updated["end_time"] = f"{int(h):02d}:{int(m):02d}"
+
+    updated["selected_venue_ids"] = selected
+    updated["interests"] = interests or updated.get("interests", [])
+    return updated
+
+
+def update_request_with_feedback(
+    current_parsed: Dict[str, Any],
+    feedback_text: str,
+    venues: List[Dict[str, Any]],
+) -> Tuple[Dict[str, Any], bool]:
+    """
+    Alternatif plan isteğini (örn: 'daha az müze, daha çok park') mevcut kısıtlara uygular.
+    """
+    valid_poi_ids = {v["id"] for v in venues if not v.get("is_restaurant", False)}
+    hub_ids = {v["id"] for v in venues if v.get("category") in {"baslangic_bitis", "konaklama"}}
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    used_llm = False
+    result_dict: Optional[Dict[str, Any]] = None
+
+    if api_key and feedback_text.strip():
+        try:
+            from google import genai
+
+            compact_catalog = [
+                {"id": v["id"], "name": v["name"], "category": v["category"], "tags": v.get("tags", [])}
+                for v in venues
+                if not v.get("is_restaurant", False) and v.get("category") not in {"baslangic_bitis", "konaklama"}
+            ]
+            prompt = (
+                "Kullanıcının mevcut rota kısıtlarını yeni geri bildirime göre güncelle.\n"
+                "Sadece verilen katalogdaki id'leri kullan.\n\n"
+                f"MEVCUT KISITLAR:\n{json.dumps(current_parsed, ensure_ascii=False)}\n\n"
+                f"MEKAN KATALOĞU:\n{json.dumps(compact_catalog, ensure_ascii=False)}\n\n"
+                f"KULLANICI GERİ BİLDİRİMİ:\n{feedback_text}"
+            )
+            client = genai.Client(api_key=api_key)
+            interaction = client.interactions.create(
+                model="gemini-3.8-flash",
+                input=prompt,
+                system_instruction="Kısıt güncelleyici ajansın. Şemaya uygun geçerli JSON döndür.",
+                response_format={
+                    "type": "text",
+                    "mime_type": "application/json",
+                    "schema": _LLMParseSchema.model_json_schema(),
+                },
+                store=False,
+            )
+            parsed_llm = _LLMParseSchema.model_validate_json(interaction.output_text or "{}")
+            result_dict = parsed_llm.model_dump()
+            result_dict["city"] = current_parsed.get("city", "Kocaeli")
+            used_llm = True
+        except Exception:
+            result_dict = None
+
+    if result_dict is None:
+        result_dict = _fallback_update_with_feedback(current_parsed, feedback_text, venues)
+
+    result_dict["selected_venue_ids"] = [
+        vid
+        for vid in dict.fromkeys(result_dict.get("selected_venue_ids", []))
+        if vid in valid_poi_ids and vid not in hub_ids
+    ]
+    if result_dict.get("start_venue_id") not in valid_poi_ids:
+        result_dict["start_venue_id"] = current_parsed.get("start_venue_id", "eski_gar")
+    if result_dict.get("end_venue_id") not in valid_poi_ids:
+        result_dict["end_venue_id"] = current_parsed.get("end_venue_id", result_dict["start_venue_id"])
 
     validated = ParsedRequest.model_validate(result_dict)
     return validated.model_dump(), used_llm

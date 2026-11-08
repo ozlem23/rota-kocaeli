@@ -11,8 +11,8 @@
       "başlangıç",
       "gar"
     ],
-    "lat": 40.76194,
-    "lon": 29.9172,
+    "lat": 40.76197,
+    "lon": 29.91629,
     "default_stay_min": 0,
     "opening_hours": null,
     "opening_hours_note": "Açık alan / başlangıç noktası",
@@ -21,7 +21,56 @@
     "source_url": "https://tr.wikipedia.org/wiki/%C4%B0zmit_Gar%C4%B1",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Izmit_railway_station.jpg/960px-Izmit_railway_station.jpg"
+  },
+  {
+    "id": "hotel_sekapark",
+    "name": "Seka Park Otel (Konaklama)",
+    "city": "Kocaeli",
+    "district": "İzmit",
+    "category": "konaklama",
+    "tags": [
+      "konaklama",
+      "otel",
+      "sahil",
+      "başlangıç",
+      "sekapark"
+    ],
+    "lat": 40.76025,
+    "lon": 29.90650,
+    "default_stay_min": 0,
+    "opening_hours": null,
+    "opening_hours_note": "Konaklama noktası / 7/24 resepsiyon",
+    "description_short": "Sekapark sahil bandında Marmara Körfezi kıyısında yer alan şehir oteli; çok günlük turlarda sabah başlangıç ve akşam dönüş konaklama noktasıdır.",
+    "source_name": "Google Haritalar / OSM",
+    "source_url": "https://www.google.com/maps/search/?api=1&query=Seka+Park+Otel+Izmit",
+    "price_range": null,
+    "is_restaurant": false,
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Sekapark%5E%C2%A9Abdullah_Kiyga_-_panoramio.jpg/960px-Sekapark%5E%C2%A9Abdullah_Kiyga_-_panoramio.jpg"
+  },
+  {
+    "id": "hotel_asya",
+    "name": "Otel Asya İzmit Merkez (Konaklama)",
+    "city": "Kocaeli",
+    "district": "İzmit",
+    "category": "konaklama",
+    "tags": [
+      "konaklama",
+      "otel",
+      "merkez",
+      "başlangıç"
+    ],
+    "lat": 40.76189,
+    "lon": 29.92341,
+    "default_stay_min": 0,
+    "opening_hours": null,
+    "opening_hours_note": "Konaklama noktası / 7/24 resepsiyon",
+    "description_short": "İzmit merkez Yürüyüş Yolu ve çarşı aksında yer alan şehir içi konaklama noktası; çok günlük rotalar için merkezi başlangıç ve dönüş üssüdür.",
+    "source_name": "Google Haritalar / OSM",
+    "source_url": "https://www.google.com/maps/search/?api=1&query=40.76189,29.92341",
+    "price_range": null,
+    "is_restaurant": false,
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Kozlukta_heykel_meydan%C4%B1nda_bir_otel_k%27yg%2A_-_panoramio.jpg/960px-Kozlukta_heykel_meydan%C4%B1nda_bir_otel_k%27yg%2A_-_panoramio.jpg"
   },
   {
     "id": "arkeoloji_muzesi",
@@ -35,8 +84,8 @@
       "arkeoloji",
       "kültür"
     ],
-    "lat": 40.7625,
-    "lon": 29.91583,
+    "lat": 40.76255,
+    "lon": 29.91589,
     "default_stay_min": 75,
     "opening_hours": {
       "open_time": "08:30",
@@ -48,10 +97,10 @@
     "opening_hours_note": "Pazartesi günleri kapalıdır (08:30-17:00)",
     "description_short": "Eski gar binalarının restore edilmesiyle oluşturulan müzede Paleolitik dönemden Osmanlı'ya uzanan eserler sergilenir.",
     "source_name": "Wikipedia",
-    "source_url": "https://tr.wikipedia.org/wiki/Kocaeli_Arkeoloji_ve_Etnografya_M%C3%BCzesi",
+    "source_url": "https://tr.wikipedia.org/wiki/Kocaeli_Arkeoloji_M%C3%BCzesi",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Kocaeli_Arkeoloji_ve_Etnografya_M%C3%BCzesi_ana_bina_soldan.jpg/960px-Kocaeli_Arkeoloji_ve_Etnografya_M%C3%BCzesi_ana_bina_soldan.jpg"
   },
   {
     "id": "seka_kagit_muzesi",
@@ -65,8 +114,8 @@
       "kültür",
       "tarih"
     ],
-    "lat": 40.76071,
-    "lon": 29.90659,
+    "lat": 40.76267,
+    "lon": 29.90817,
     "default_stay_min": 75,
     "opening_hours": {
       "open_time": "09:00",
@@ -78,10 +127,10 @@
     "opening_hours_note": "Pazartesi günleri kapalıdır (09:00-17:30)",
     "description_short": "Türkiye'nin ilk kağıt fabrikası SEKA yerleşkesinde kurulan dünyanın en büyük kağıt müzelerinden biridir.",
     "source_name": "Wikipedia",
-    "source_url": "https://tr.wikipedia.org/wiki/SEKA_Ka%C4%9F%C4%B1t_M%C3%BCzesi",
+    "source_url": "https://tr.wikipedia.org/wiki/SEKA_K%C3%A2%C4%9F%C4%B1t_M%C3%BCzesi",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/38/SEKA_Ka%C4%9F%C4%B1t_M%C3%BCzesi_%281%29_02.jpg/960px-SEKA_Ka%C4%9F%C4%B1t_M%C3%BCzesi_%281%29_02.jpg"
   },
   {
     "id": "saat_kulesi",
@@ -95,8 +144,8 @@
       "manzara",
       "simge"
     ],
-    "lat": 40.76283,
-    "lon": 29.91965,
+    "lat": 40.76278,
+    "lon": 29.91972,
     "default_stay_min": 15,
     "opening_hours": null,
     "opening_hours_note": "Dış cephe ziyareti — açılış saati kayıtlı değil",
@@ -105,7 +154,7 @@
     "source_url": "https://tr.wikipedia.org/wiki/%C4%B0zmit_Saat_Kulesi",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/%C4%B0zmit_saat_kulesi_%281%29_01.jpg/960px-%C4%B0zmit_saat_kulesi_%281%29_01.jpg"
   },
   {
     "id": "kasri_humayun",
@@ -119,8 +168,8 @@
       "köşk",
       "osmanlı"
     ],
-    "lat": 40.76302,
-    "lon": 29.9206,
+    "lat": 40.76304,
+    "lon": 29.92062,
     "default_stay_min": 30,
     "opening_hours": {
       "open_time": "09:00",
@@ -132,10 +181,10 @@
     "opening_hours_note": "Pazartesi kapalı (09:00-17:00)",
     "description_short": "Sultan Abdülaziz döneminde inşa edilen ve Mustafa Kemal Atatürk'ün basın toplantısına ev sahipliği yapan saray köşküdür.",
     "source_name": "Wikipedia",
-    "source_url": "https://tr.wikipedia.org/wiki/%C4%B0zmit_Kasr-%C4%B1_H%C3%BCmayunu",
+    "source_url": "https://tr.wikipedia.org/wiki/Av_K%C3%B6%C5%9Fk%C3%BC_Saray_M%C3%BCzesi",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Kasr-%C4%B1_H%C3%BCmayun.jpg/960px-Kasr-%C4%B1_H%C3%BCmayun.jpg"
   },
   {
     "id": "sirri_pasa_konagi",
@@ -149,8 +198,8 @@
       "mimari",
       "kültür"
     ],
-    "lat": 40.76528,
-    "lon": 29.92056,
+    "lat": 40.76542,
+    "lon": 29.92132,
     "default_stay_min": 30,
     "opening_hours": {
       "open_time": "09:00",
@@ -163,7 +212,7 @@
     "source_url": "https://tr.wikipedia.org/wiki/S%C4%B1rr%C4%B1_Pa%C5%9Fa_Kona%C4%9F%C4%B1",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Selim_S%C4%B1rr%C4%B1_Pa%C5%9Fa_Kona%C4%9F%C4%B1_%282%29.jpg/960px-Selim_S%C4%B1rr%C4%B1_Pa%C5%9Fa_Kona%C4%9F%C4%B1_%282%29.jpg"
   },
   {
     "id": "fevziye_camii",
@@ -177,8 +226,8 @@
       "osmanlı",
       "inanç"
     ],
-    "lat": 40.76266,
-    "lon": 29.92562,
+    "lat": 40.76262,
+    "lon": 29.92559,
     "default_stay_min": 20,
     "opening_hours": {
       "open_time": "05:30",
@@ -191,7 +240,7 @@
     "source_url": "https://tr.wikipedia.org/wiki/Fevziye_Camii",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/45/Fevziye_Cami.jpg"
   },
   {
     "id": "gayret_gemi_muzesi",
@@ -205,8 +254,8 @@
       "sahil",
       "tarih"
     ],
-    "lat": 40.7602,
-    "lon": 29.9135,
+    "lat": 40.76023,
+    "lon": 29.91680,
     "default_stay_min": 45,
     "opening_hours": {
       "open_time": "09:00",
@@ -221,7 +270,7 @@
     "source_url": "https://tr.wikipedia.org/wiki/TCG_Gayret_(D-352)",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/66/Gayret_Museum.jpg"
   },
   {
     "id": "yeni_cuma_camii",
@@ -235,8 +284,8 @@
       "mimar sinan",
       "osmanlı"
     ],
-    "lat": 40.76273,
-    "lon": 29.93103,
+    "lat": 40.76274,
+    "lon": 29.93100,
     "default_stay_min": 20,
     "opening_hours": null,
     "opening_hours_note": "Açılış saati OSM'de kayıtlı değil",
@@ -245,7 +294,7 @@
     "source_url": "https://tr.wikipedia.org/wiki/Pertev_Mehmet_Pa%C5%9Fa_Camii_(%C4%B0zmit)",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/File-Izmit_Pertev_Pasha_Mosque_1433b.jpg/960px-File-Izmit_Pertev_Pasha_Mosque_1433b.jpg"
   },
   {
     "id": "sekapark_sahil",
@@ -259,8 +308,8 @@
       "doğa",
       "yürüyüş"
     ],
-    "lat": 40.7588,
-    "lon": 29.9055,
+    "lat": 40.75995,
+    "lon": 29.90680,
     "default_stay_min": 40,
     "opening_hours": null,
     "opening_hours_note": "Açık park alanı — saat sınırı yok",
@@ -269,7 +318,7 @@
     "source_url": "https://tr.wikipedia.org/wiki/Sekapark",
     "price_range": null,
     "is_restaurant": false,
-    "image_url": null
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/SEKAPARK_%2A%C2%A9Abdullah_Kiyga_-_panoramio.jpg/960px-SEKAPARK_%2A%C2%A9Abdullah_Kiyga_-_panoramio.jpg"
   },
   {
     "id": "rest_fevziye_kofte",
@@ -284,8 +333,8 @@
       "esnaf",
       "öğle yemeği"
     ],
-    "lat": 40.7628,
-    "lon": 29.9259,
+    "lat": 40.76265,
+    "lon": 29.92575,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "10:30",
@@ -294,11 +343,11 @@
     },
     "opening_hours_note": "10:30-21:30",
     "description_short": "Fevziye Camii ve Yürüyüş Yolu çevresinde hızlı ve geleneksel köfte-piyaz menüsü sunan şehir içi lokantası.",
-    "source_name": "OpenStreetMap",
-    "source_url": "https://www.openstreetmap.org",
+    "source_name": "Google Haritalar / OSM",
+    "source_url": "https://www.google.com/maps/search/?api=1&query=40.76265,29.92575",
     "price_range": "Orta (₺₺)",
     "is_restaurant": true,
-    "image_url": null
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/07/Inegol_kofte.jpg/960px-Inegol_kofte.jpg"
   },
   {
     "id": "rest_yuruyus_pide",
@@ -313,8 +362,8 @@
       "fırın",
       "öğle yemeği"
     ],
-    "lat": 40.7629,
-    "lon": 29.9275,
+    "lat": 40.76362,
+    "lon": 29.92903,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "11:00",
@@ -323,11 +372,11 @@
     },
     "opening_hours_note": "11:00-22:00",
     "description_short": "Yürüyüş Yolu üzerinde pide, lahmacun ve kebap çeşitleriyle öne çıkan merkezi restoran.",
-    "source_name": "OpenStreetMap",
-    "source_url": "https://www.openstreetmap.org",
+    "source_name": "Google Haritalar / OSM",
+    "source_url": "https://www.google.com/maps/search/?api=1&query=40.76362,29.92903",
     "price_range": "Uygun-Orta (₺₺)",
     "is_restaurant": true,
-    "image_url": null
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Nazilli-kiymali-pide-20201023_143731.jpg/960px-Nazilli-kiymali-pide-20201023_143731.jpg"
   },
   {
     "id": "rest_cumhuriyet_ev",
@@ -342,17 +391,17 @@
       "vejetaryen",
       "çorba"
     ],
-    "lat": 40.7634,
-    "lon": 29.9248,
+    "lat": 40.76385,
+    "lon": 29.92611,
     "default_stay_min": 60,
     "opening_hours": null,
     "opening_hours_note": "Açılış saati OSM'de kayıtlı değil",
     "description_short": "Günlük tencere yemekleri, çorba ve zeytinyağlı seçenekleri bulunan merkezi esnaf lokantası.",
-    "source_name": "OpenStreetMap",
-    "source_url": "https://www.openstreetmap.org",
+    "source_name": "Google Haritalar / OSM",
+    "source_url": "https://www.google.com/maps/search/?api=1&query=40.76385,29.92611",
     "price_range": "Uygun (₺)",
     "is_restaurant": true,
-    "image_url": null
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Kuru_Fasulye_pilav.jpg/960px-Kuru_Fasulye_pilav.jpg"
   },
   {
     "id": "rest_kultur_tepesi",
@@ -367,8 +416,8 @@
       "mantı",
       "öğle yemeği"
     ],
-    "lat": 40.7631,
-    "lon": 29.9199,
+    "lat": 40.76359,
+    "lon": 29.92053,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "09:00",
@@ -377,15 +426,15 @@
     },
     "opening_hours_note": "09:00-22:00",
     "description_short": "Saat Kulesi ve Kasr-ı Hümayun hemen yanında dinlenme ve yöresel yemek seçenekleri sunan mekan.",
-    "source_name": "OpenStreetMap",
-    "source_url": "https://www.openstreetmap.org",
+    "source_name": "Google Haritalar / OSM",
+    "source_url": "https://www.google.com/maps/search/?api=1&query=40.76359,29.92053",
     "price_range": "Orta (₺₺)",
     "is_restaurant": true,
-    "image_url": null
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/64/TurkishBreakfastAtCesme.jpg"
   },
   {
     "id": "rest_seka_balik",
-    "name": "Körfez Sahil Balık & Kafe",
+    "name": "Sekapark Antikkapı Sahil & Balık Restoranı",
     "city": "Kocaeli",
     "district": "İzmit",
     "category": "restoran",
@@ -394,23 +443,24 @@
       "deniz ürünleri",
       "salata",
       "sahil",
+      "kafe",
       "manzara"
     ],
-    "lat": 40.7594,
-    "lon": 29.9125,
+    "lat": 40.76047,
+    "lon": 29.91156,
     "default_stay_min": 60,
     "opening_hours": {
-      "open_time": "11:30",
+      "open_time": "10:00",
       "close_time": "23:00",
       "closed_days": []
     },
-    "opening_hours_note": "11:30-23:00",
-    "description_short": "Seka Park sahil hattında deniz manzaralı balık ekmek ve mevsim balıkları sunan restoran.",
-    "source_name": "OpenStreetMap",
-    "source_url": "https://www.openstreetmap.org",
+    "opening_hours_note": "10:00-23:00",
+    "description_short": "Seka Park sahil yürüyüş bandında İzmit Körfezi kıyısında balık, ızgara ve kafe menüsü sunan sahil restoranı.",
+    "source_name": "Google Haritalar / OSM",
+    "source_url": "https://www.google.com/maps/search/?api=1&query=40.76047,29.91156",
     "price_range": "Orta-Yüksek (₺₺₺)",
     "is_restaurant": true,
-    "image_url": null
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/Levrek_Izgara_Beykoz_Koru_Sosyal_Tesisleri.JPG/960px-Levrek_Izgara_Beykoz_Koru_Sosyal_Tesisleri.JPG"
   },
   {
     "id": "rest_izmit_iskender",
@@ -426,8 +476,8 @@
       "et",
       "öğle yemeği"
     ],
-    "lat": 40.7633,
-    "lon": 29.9242,
+    "lat": 40.76344,
+    "lon": 29.92729,
     "default_stay_min": 60,
     "opening_hours": {
       "open_time": "11:00",
@@ -435,11 +485,11 @@
       "closed_days": []
     },
     "opening_hours_note": "11:00-22:00",
-    "description_short": "İzmit merkez Yürüyüş Yolu aksında tereyağlı İskender kebap ve yaprak döner servis eden köklü restoran.",
-    "source_name": "OpenStreetMap",
-    "source_url": "https://www.openstreetmap.org",
+    "description_short": "İzmit merkez Yürüyüş Yolu ve Hürriyet Cad. aksında tereyağlı İskender kebap ve yaprak döner servis eden köklü restoran.",
+    "source_name": "Google Haritalar / OSM",
+    "source_url": "https://www.google.com/maps/search/?api=1&query=Bursa+Kebapcisi+Izmit",
     "price_range": "Orta (₺₺)",
     "is_restaurant": true,
-    "image_url": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80"
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Iskender_kebap.jpg"
   }
 ]

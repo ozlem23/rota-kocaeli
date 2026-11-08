@@ -1,10 +1,12 @@
 """
 Kişi 1 — Tek Seferlik Şehir Verisi İndirici (Kocaeli / İzmit)
 Kullanım:
-    python -m person1_data_ai.fetch_city_data --output-dir data
+    python -m person1_data_ai.fetch_city_data --output-dir data --refresh-matrix-only --strict-osrm
+    python -m person1_data_ai.fetch_city_data --output-dir data --refresh-driving-only --strict-osrm
 Not:
-    Ücretsiz Overpass, Wikipedia ve OSRM API limitlerine takılmamak için veriyi bir kez
-    indirip data/venues.json ve data/walking_matrix.json dosyalarına kaydeder.
+    Ücretsiz Overpass, Wikipedia ve OSRM/routed-foot API limitlerine takılmamak için veriyi
+    önceden indirip data/venues.json, walking_matrix.json, walking_paths.json,
+    driving_matrix.json ve driving_paths.json dosyalarına kaydeder.
 """
 from __future__ import annotations
 
@@ -78,16 +80,30 @@ def fetch_wikipedia_summary(title_or_query: str) -> tuple[str, str]:
         return "", ""
 
 
-def build_osrm_walking_matrix(
-    venues: List[Dict[str, Any]], strict_osrm: bool = False
+def build_osrm_matrix(
+    venues: List[Dict[str, Any]],
+    profile: str = "foot",
+    strict_osrm: bool = False,
 ) -> Dict[str, Dict[str, Dict[str, int]]]:
+    """
+    profile='foot' -> OpenStreetMap routed-foot (yaya kaldırım/park ağı)
+    profile='driving' -> OSRM driving / routed-car (araç/tek yön yol ağı)
+    """
     coords_str = ";".join(f"{v['lon']},{v['lat']}" for v in venues)
-    # Gerçek yaya profili (kaldırım, park içi yürüyüş yolu, üst geçit vb.) için OpenStreetMap routed-foot
-    urls = [
-        f"https://routing.openstreetmap.de/routed-foot/table/v1/foot/{coords_str}?annotations=duration,distance",
-        f"https://router.project-osrm.org/table/v1/foot/{coords_str}?annotations=duration,distance",
-    ]
-    headers = {"User-Agent": "RotaKocaeliPlanner/2.0 (Educational Project)"}
+    if profile == "driving":
+        urls = [
+            f"https://router.project-osrm.org/table/v1/driving/{coords_str}?annotations=duration,distance",
+            f"https://routing.openstreetmap.de/routed-car/table/v1/driving/{coords_str}?annotations=duration,distance",
+        ]
+        fallback_speed_mps = 6.94  # ~25 km/h şehir içi araç ortalaması
+    else:
+        urls = [
+            f"https://routing.openstreetmap.de/routed-foot/table/v1/foot/{coords_str}?annotations=duration,distance",
+            f"https://router.project-osrm.org/table/v1/foot/{coords_str}?annotations=duration,distance",
+        ]
+        fallback_speed_mps = 1.25  # ~4.5 km/h yaya yürüyüşü
+
+    headers = {"User-Agent": "RotaKocaeliPlanner/3.0 (Educational Project)"}
     for url in urls:
         try:
             resp = requests.get(url, headers=headers, timeout=30)
@@ -103,25 +119,23 @@ def build_osrm_walking_matrix(
                         matrix[v1["id"]][v2["id"]] = {"duration_min": 0, "distance_m": 0}
                     else:
                         d_m = float(distances[i][j] or 750)
-                        d_sec = float(durations[i][j] or (d_m / 1.25))
-                        # Bazı OSRM demo sunucuları araç hızı döndürürse yaya hızıyla (75 m/dk) tutarlı kıl
-                        if "routed-foot" not in url:
+                        d_sec = float(durations[i][j] or (d_m / fallback_speed_mps))
+                        if profile == "foot" and "routed-foot" not in url:
                             d_sec = max(d_sec, d_m / 1.25)
                         matrix[v1["id"]][v2["id"]] = {
                             "duration_min": max(1, int(round(d_sec / 60.0))),
                             "distance_m": int(round(d_m)),
                         }
-            print(f"Yaya matrisi kaynağı: {url.split('/table')[0]}", flush=True)
+            print(f"[{profile}] Matris kaynağı: {url.split('/table')[0]}", flush=True)
             return matrix
         except Exception as e:
-            print(f"Yaya matrisi uyarısı ({url[:45]}...): {e}", flush=True)
+            print(f"[{profile}] Matris uyarısı ({url[:48]}...): {e}", flush=True)
             continue
 
     if strict_osrm:
-        raise RuntimeError("Canlı OSRM/routed-foot erişilemedi (--strict-osrm).")
+        raise RuntimeError(f"Canlı {profile} yönlendirme sunucusuna erişilemedi (--strict-osrm).")
 
-    print("UYARI: Canlı OSRM erişilemedi, Haversine yedek matrisi kullanılıyor.", flush=True)
-    # OSRM erişilemezse Haversine yedek hesaplama
+    print(f"UYARI [{profile}]: Canlı sunucu erişilemedi, Haversine yedek matrisi kullanılıyor.", flush=True)
     matrix = {}
     for v1 in venues:
         matrix[v1["id"]] = {}
@@ -136,23 +150,43 @@ def build_osrm_walking_matrix(
             a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
             dist = int(round(2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a)) * 1.28))
             matrix[v1["id"]][v2["id"]] = {
-                "duration_min": max(1, int(round(dist / 75.0))),
+                "duration_min": max(1, int(round(dist / (fallback_speed_mps * 60.0)))),
                 "distance_m": dist,
             }
     return matrix
 
 
-def build_osrm_walking_paths(venues: List[Dict[str, Any]], strict_osrm: bool = False) -> Dict[str, List[List[float]]]:
-    """Her mekan çifti arasında kaldırımları ve yaya yollarını takip eden geometrileri indirir."""
+def build_osrm_paths(
+    venues: List[Dict[str, Any]],
+    profile: str = "foot",
+    strict_osrm: bool = False,
+) -> Dict[str, List[List[float]]]:
+    """
+    Her mekan çifti arasında seçilen ulaşım profiline uygun (kaldırım veya araç yolu)
+    gerçek yol geometrilerini indirir.
+    Not: Tek yönlü araç yolları gidiş-dönüşte farklı olabileceği için 'driving' profilinde
+    her yön ayrı çekilir; yaya ('foot') profilinde simetri korunarak yarı sürede indirilir.
+    """
     v_by_id = {v["id"]: v for v in venues}
     v_ids = list(v_by_id.keys())
     paths: Dict[str, List[List[float]]] = {}
     session = requests.Session()
-    session.headers.update({"User-Agent": "RotaKocaeliPlanner/2.0 (Educational Project)"})
+    session.headers.update({"User-Agent": "RotaKocaeliPlanner/3.0 (Educational Project)"})
 
-    unique_total = len(v_ids) * (len(v_ids) - 1) // 2
+    if profile == "driving":
+        bases = (
+            "https://router.project-osrm.org/route/v1/driving",
+            "https://routing.openstreetmap.de/routed-car/route/v1/driving",
+        )
+        total_req = len(v_ids) * (len(v_ids) - 1)
+    else:
+        bases = (
+            "https://routing.openstreetmap.de/routed-foot/route/v1/foot",
+            "https://router.project-osrm.org/route/v1/foot",
+        )
+        total_req = len(v_ids) * (len(v_ids) - 1) // 2
+
     fetched_count = 0
-
     for uid in v_ids:
         u = v_by_id[uid]
         u_lon, u_lat = float(u["lon"]), float(u["lat"])
@@ -163,15 +197,12 @@ def build_osrm_walking_paths(venues: List[Dict[str, Any]], strict_osrm: bool = F
             v_lon, v_lat = float(v["lon"]), float(v["lat"])
             pair_key = f"{uid}::{vid}"
             rev_key = f"{vid}::{uid}"
-            if rev_key in paths:
+            if profile == "foot" and rev_key in paths:
                 paths[pair_key] = list(reversed(paths[rev_key]))
                 continue
 
             geom = None
-            for base in (
-                "https://routing.openstreetmap.de/routed-foot/route/v1/foot",
-                "https://router.project-osrm.org/route/v1/foot",
-            ):
+            for base in bases:
                 for _attempt in range(2):
                     try:
                         url = f"{base}/{u_lon},{u_lat};{v_lon},{v_lat}?overview=full&geometries=geojson"
@@ -186,48 +217,70 @@ def build_osrm_walking_paths(venues: List[Dict[str, Any]], strict_osrm: bool = F
                 if geom:
                     break
             if strict_osrm and not geom:
-                raise RuntimeError(f"Güzergah çizgisi alınamadı: {pair_key}")
+                raise RuntimeError(f"[{profile}] Güzergah çizgisi alınamadı: {pair_key}")
             paths[pair_key] = geom or [[u_lon, u_lat], [v_lon, v_lat]]
             fetched_count += 1
-            if fetched_count % 25 == 0 or fetched_count == unique_total:
-                print(f"Yaya güzergahı indirildi: {fetched_count}/{unique_total}", flush=True)
-            time.sleep(0.04)
+            if fetched_count % 30 == 0 or fetched_count == total_req:
+                print(f"[{profile}] Güzergah indirildi: {fetched_count}/{total_req}", flush=True)
+            time.sleep(0.03)
     return paths
+
+
+def build_osrm_walking_matrix(
+    venues: List[Dict[str, Any]], strict_osrm: bool = False
+) -> Dict[str, Dict[str, Dict[str, int]]]:
+    return build_osrm_matrix(venues, profile="foot", strict_osrm=strict_osrm)
+
+
+def build_osrm_walking_paths(
+    venues: List[Dict[str, Any]], strict_osrm: bool = False
+) -> Dict[str, List[List[float]]]:
+    return build_osrm_paths(venues, profile="foot", strict_osrm=strict_osrm)
 
 
 def main() -> None:
     urllib3_cn.allowed_gai_family = lambda: socket.AF_INET
     parser = argparse.ArgumentParser(description="Kocaeli/İzmit verisini indir ve JSON'a kaydet.")
     parser.add_argument("--output-dir", default="data", help="Çıktı klasörü (varsayılan: data)")
-    parser.add_argument("--refresh-matrix-only", action="store_true", help="Mevcut venues.json için sadece OSRM matrisini ve yollarını yenile")
+    parser.add_argument("--refresh-matrix-only", action="store_true", help="Mevcut venues.json için yaya + araç matris/yollarını yenile")
+    parser.add_argument("--refresh-driving-only", action="store_true", help="Yalnızca araç (driving) matris ve yollarını yenile")
     parser.add_argument("--strict-osrm", action="store_true", help="OSRM erişilemezse yedek veriye düşmeden hata ver")
     args = parser.parse_args()
 
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     venues_file = out_dir / "venues.json"
-    matrix_file = out_dir / "walking_matrix.json"
-    paths_file = out_dir / "walking_paths.json"
 
-    if args.refresh_matrix_only and venues_file.exists():
+    if (args.refresh_matrix_only or args.refresh_driving_only) and venues_file.exists():
         with open(venues_file, encoding="utf-8") as f:
             venues = json.load(f)
-        matrix = build_osrm_walking_matrix(venues, strict_osrm=args.strict_osrm)
-        with open(matrix_file, "w", encoding="utf-8") as f:
-            json.dump(matrix, f, ensure_ascii=False, indent=2)
-        print(f"OSRM yaya matrisi güncellendi: {matrix_file} ({len(venues)} mekan)")
 
-        paths = build_osrm_walking_paths(venues, strict_osrm=args.strict_osrm)
-        with open(paths_file, "w", encoding="utf-8") as f:
-            json.dump(paths, f)
-        print(f"OSRM yaya yolları güncellendi: {paths_file} ({len(paths)} güzergah)")
+        if not args.refresh_driving_only:
+            w_matrix = build_osrm_matrix(venues, profile="foot", strict_osrm=args.strict_osrm)
+            with open(out_dir / "walking_matrix.json", "w", encoding="utf-8") as f:
+                json.dump(w_matrix, f, ensure_ascii=False, indent=2)
+            print(f"Yaya matrisi güncellendi ({len(venues)} mekan)")
+
+            w_paths = build_osrm_paths(venues, profile="foot", strict_osrm=args.strict_osrm)
+            with open(out_dir / "walking_paths.json", "w", encoding="utf-8") as f:
+                json.dump(w_paths, f)
+            print(f"Yaya yolları güncellendi ({len(w_paths)} güzergah)")
+
+        d_matrix = build_osrm_matrix(venues, profile="driving", strict_osrm=args.strict_osrm)
+        with open(out_dir / "driving_matrix.json", "w", encoding="utf-8") as f:
+            json.dump(d_matrix, f, ensure_ascii=False, indent=2)
+        print(f"Araç (araba) matrisi güncellendi ({len(venues)} mekan)")
+
+        d_paths = build_osrm_paths(venues, profile="driving", strict_osrm=args.strict_osrm)
+        with open(out_dir / "driving_paths.json", "w", encoding="utf-8") as f:
+            json.dump(d_paths, f)
+        print(f"Araç (araba) yolları güncellendi ({len(d_paths)} güzergah)")
         return
 
     elements = fetch_overpass_pois()
     print(f"Overpass üzerinden {len(elements)} ham kayıt çekildi.")
-    print("İpucu: Çekilen ham mekanları temizleyip data/venues.json içine ekledikten sonra --refresh-matrix-only ile OSRM matrisini üretin.")
+    print("İpucu: Çekilen ham mekanları temizleyip data/venues.json içine ekledikten sonra --refresh-matrix-only ile matrisleri üretin.")
 
 
 if __name__ == "__main__":
     main()
-

@@ -94,7 +94,9 @@ def _smoke_test_ui_and_contracts() -> None:
     assert not at.exception, f"Yürüyüş Yolu dönüş hatası: {at.exception}"
     assert any("Yürüme" in m.label for m in at.metric), "Yürüyüş moduna dönüşte Yürüme Süresi metriği görünmeli."
 
-    # Yeniden hesapla
+    # Düzenleme modunu aç ve yeniden hesapla
+    at.toggle(key="edit_mode_1").set_value(True).run()
+    assert not at.exception, f"Düzenleme modu hatası: {at.exception}"
     recalc_btn = next(b for b in at.button if "Yeniden Hesapla" in b.label)
     recalc_btn.click().run()
     assert not at.exception, f"Yeniden Hesapla hatası: {at.exception}"

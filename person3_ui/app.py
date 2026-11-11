@@ -964,82 +964,182 @@ def _format_slide5_schedule(plan: Dict[str, Any], travel_mode: str = "walking") 
 
 def _inject_global_styles() -> None:
     st.markdown(
-        '<style>'
-        '.stApp { background-color: #f8fafc; }'
-        'div[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 12px; }'
-        '.rk-navbar-wrap { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; '
-        'padding: 8px 12px; margin-bottom: 18px; box-shadow: 0 2px 6px rgba(15,23,42,0.05); }'
-        '</style>',
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        html, body, [class*="css"], .stMarkdown, button, input, textarea, select {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        }
+        .stApp { background: #f6f7f9 !important; }
+        .block-container { padding-top: 1.4rem !important; padding-bottom: 3rem !important; max-width: 1380px !important; }
+        .stAppDeployButton, [data-testid="stDecoration"] { display: none !important; }
+        h1, h2, h3, h4 { letter-spacing: -0.3px; color: #111827; }
+
+        /* Kartlar */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background: #ffffff;
+            border: 1px solid #eceef1 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 1px 3px rgba(17, 24, 39, 0.04);
+        }
+
+        /* Butonlar */
+        .stButton button, .stFormSubmitButton button, .stLinkButton a, .stDownloadButton button {
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            font-size: 13.5px !important;
+            transition: all .15s ease !important;
+        }
+        .stButton button[kind="primary"], .stFormSubmitButton button[kind="primaryFormSubmit"] {
+            background: #0f766e !important;
+            border: 1px solid #0f766e !important;
+            color: #ffffff !important;
+        }
+        .stButton button[kind="primary"]:hover, .stFormSubmitButton button[kind="primaryFormSubmit"]:hover {
+            background: #115e59 !important;
+            border-color: #115e59 !important;
+        }
+        .stButton button[kind="secondary"] {
+            background: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+            color: #374151 !important;
+        }
+        .stButton button[kind="secondary"]:hover { border-color: #0f766e !important; color: #0f766e !important; }
+
+        /* Metrikler */
+        [data-testid="stMetric"] {
+            background: #ffffff;
+            border: 1px solid #eceef1;
+            border-radius: 14px;
+            padding: 12px 16px;
+        }
+        [data-testid="stMetricLabel"] p { font-size: 12px !important; color: #6b7280 !important; font-weight: 600 !important; }
+        [data-testid="stMetricValue"] { font-size: 22px !important; font-weight: 700 !important; color: #111827 !important; }
+
+        /* Sekmeler */
+        .stTabs [data-baseweb="tab-list"] { gap: 4px; border-bottom: 1px solid #e5e7eb; }
+        .stTabs [data-baseweb="tab"] {
+            height: 40px; padding: 0 14px; font-weight: 600; font-size: 13.5px; color: #6b7280; background: transparent;
+        }
+        .stTabs [aria-selected="true"] { color: #0f766e !important; }
+        .stTabs [data-baseweb="tab-highlight"] { background-color: #0f766e !important; }
+
+        /* Girdi alanları */
+        .stTextInput input, .stTextArea textarea, .stNumberInput input { border-radius: 10px !important; }
+        [data-testid="stExpander"] details { border-radius: 12px !important; border: 1px solid #eceef1 !important; background: #ffffff; }
+        [data-testid="stExpander"] summary p { font-weight: 600; font-size: 13.5px; color: #374151; }
+
+        /* Kenar çubuğu */
+        section[data-testid="stSidebar"] { background: #ffffff !important; border-right: 1px solid #eceef1; }
+
+        /* Üst menü */
+        .rk-topbar {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        .rk-brand { display: flex; align-items: center; gap: 12px; }
+        .rk-brand-title { font-size: 20px; font-weight: 800; color: #111827; letter-spacing: -0.4px; line-height: 1.1; }
+        .rk-brand-sub { font-size: 12.5px; color: #6b7280; margin-top: 2px; }
+        .rk-user-chip {
+            display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600;
+            background: #ffffff; border: 1px solid #e5e7eb; border-radius: 999px; padding: 5px 12px; color: #374151;
+        }
+        .rk-user-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+        /* Zaman çizelgesi */
+        .rk-section-title { font-size: 16px; font-weight: 700; color: #111827; margin: 4px 0 10px 0; }
+        .rk-stop { display: flex; gap: 12px; align-items: flex-start; }
+        .rk-time { width: 50px; flex-shrink: 0; text-align: right; padding-top: 4px; }
+        .rk-time b { display: block; font-size: 14px; color: #111827; }
+        .rk-time span { font-size: 11.5px; color: #9ca3af; }
+        .rk-dot {
+            width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; color: #fff; font-weight: 700; font-size: 12.5px;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #f6f7f9;
+        }
+        .rk-card {
+            flex: 1; min-width: 0; background: #ffffff; border: 1px solid #eceef1; border-radius: 14px;
+            padding: 12px; display: flex; gap: 12px;
+        }
+        .rk-card.done { background: #f0fdf4; border-color: #bbf7d0; }
+        .rk-card img, .rk-card .rk-noimg {
+            width: 78px; height: 78px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #f3f4f6;
+        }
+        .rk-card .rk-noimg { display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .rk-name { font-size: 15px; font-weight: 700; color: #111827; line-height: 1.3; }
+        .rk-chip {
+            display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-top: 4px;
+        }
+        .rk-meta { font-size: 12px; color: #6b7280; margin-top: 6px; }
+        .rk-meta .warn { color: #b45309; font-weight: 600; }
+        .rk-desc {
+            font-size: 12.5px; color: #4b5563; margin-top: 4px; line-height: 1.45;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .rk-links { margin-top: 6px; font-size: 12px; }
+        .rk-links a { color: #0f766e; text-decoration: none; font-weight: 600; margin-right: 12px; }
+        .rk-leg {
+            margin: -6px 0 -6px 76px; padding: 6px 0 6px 18px; border-left: 2px dashed #d1d5db;
+            font-size: 12px; color: #6b7280;
+        }
+        .rk-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: #6b7280; margin-top: 6px; }
+        .rk-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; }
+        </style>
+        """,
         unsafe_allow_html=True,
     )
 
 
 def _render_official_header() -> None:
     user = st.session_state.get("auth_user")
-    user_badge = (
-        f'<span style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; '
-        f'font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px;">👤 {user["full_name"]}</span>'
-        if user
-        else '<span style="background: rgba(148, 163, 184, 0.18); border: 1px solid #64748b; color: #cbd5e1; '
-        'font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px;">Misafir Oturumu</span>'
-    )
+    if user:
+        user_chip = (
+            f'<span class="rk-user-chip"><span class="rk-user-dot" style="background:#10b981;"></span>'
+            f'{html.escape(user["full_name"])}</span>'
+        )
+    else:
+        user_chip = (
+            '<span class="rk-user-chip"><span class="rk-user-dot" style="background:#9ca3af;"></span>'
+            'Misafir</span>'
+        )
     svg_logo = (
         '<svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">'
-        '<rect width="48" height="48" rx="8" fill="#1E3A8A"/>'
-        '<path d="M24 6L28 16H20L24 6Z" fill="#F59E0B"/>'
-        '<circle cx="24" cy="24" r="14" stroke="#FFFFFF" stroke-width="2.5" stroke-dasharray="3 3"/>'
-        '<rect x="22" y="16" width="4" height="16" rx="2" fill="#FFFFFF"/>'
-        '<rect x="18" y="32" width="12" height="6" rx="2" fill="#F59E0B"/>'
-        '<circle cx="24" cy="24" r="3" fill="#EF4444"/>'
-        '<path d="M12 38C16 34 32 34 36 38" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>'
+        '<rect width="48" height="48" rx="12" fill="#0F766E"/>'
+        '<path d="M24 11c-5.5 0-10 4.3-10 9.7C14 28 24 37 24 37s10-9 10-16.3C34 15.3 29.5 11 24 11z" fill="#FFFFFF"/>'
+        '<circle cx="24" cy="20.5" r="3.6" fill="#0F766E"/>'
         '</svg>'
     )
-    header_html = (
-        '<div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e3a8a 100%); '
-        'padding: 18px 24px; border-radius: 14px; margin-bottom: 12px; '
-        'box-shadow: 0 4px 14px rgba(15,23,42,0.14); color: white; display: flex; '
-        'align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">'
-        '<div style="display: flex; align-items: center; gap: 16px;">'
-        f'<div style="background: white; border-radius: 10px; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center;">{svg_logo}</div>'
-        '<div>'
-        '<div style="font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: #94a3b8;">T.C. Kocaeli Kültür & Turizm Rota Rehberi</div>'
-        '<div style="font-size: 24px; font-weight: 800; color: #ffffff; line-height: 1.2;">ROTA KOCAELİ <span style="font-size: 14px; font-weight: 400; color: #38bdf8;">| Akıllı Yürüyüş & Araç Planlayıcısı</span></div>'
-        '<div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">İzmit Tarihi Koridoru & Rota Optimizasyon Motoru • OpenStreetMap Gerçek Yaya & Araç Rotaları</div>'
-        '</div>'
-        '</div>'
-        '<div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">'
-        '<span style="background: rgba(56, 189, 248, 0.18); border: 1px solid #38bdf8; color: #38bdf8; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px;">RESMİ SÜRÜM v3.1 • OSM YAYA & ARAÇ</span>'
-        f'{user_badge}'
-        '</div>'
-        '</div>'
+    st.markdown(
+        '<div class="rk-topbar">'
+        f'<div class="rk-brand">{svg_logo}<div>'
+        '<div class="rk-brand-title">Rota Kocaeli</div>'
+        '<div class="rk-brand-sub">İzmit için yürüyüş odaklı günlük gezi planlayıcı</div>'
+        '</div></div>'
+        f'{user_chip}'
+        '</div>',
+        unsafe_allow_html=True,
     )
-    st.markdown(header_html, unsafe_allow_html=True)
 
 
 def _render_top_navbar() -> str:
     st.session_state.setdefault("active_page", "planner")
     active = st.session_state["active_page"]
     user = st.session_state.get("auth_user")
-    account_label = (
-        f"👤 Profilim ({user['full_name']})"
-        if user and user.get("full_name")
-        else "👤 Profilim & Kayıtlı Geziler"
-    )
+    account_label = "👤 Profilim" if user else "👤 Giriş / Profil"
 
     nav_items = [
-        ("planner", "🧭 Rota Planlayıcı"),
-        ("catalog", "🏛️ Mekan Kataloğu"),
+        ("planner", "🧭 Rota Planla"),
+        ("catalog", "🏛️ Mekanlar"),
         ("account", account_label),
-        ("eval", "📊 Sınama & Hakkında"),
+        ("eval", "ℹ️ Hakkında"),
     ]
-    st.markdown('<div class="rk-navbar-wrap">', unsafe_allow_html=True)
-    cols = st.columns(len(nav_items))
+    cols = st.columns([1, 1, 1, 1, 2.2])
     for idx, (key, label) in enumerate(nav_items):
         btn_type = "primary" if active == key else "secondary"
         if cols[idx].button(label, key=f"top_nav_{key}", type=btn_type, width="stretch"):
             st.session_state["active_page"] = key
             st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('<div style="height: 6px;"></div>', unsafe_allow_html=True)
     return st.session_state["active_page"]
 
 
@@ -1094,21 +1194,21 @@ def _render_catalog_page(venues: List[Venue]) -> None:
             open_note = v.opening_hours_note or "Açılış saati bilinmiyor"
             gmaps_pin = _google_maps_pin_url(v.lat, v.lon)
             card_html = (
-                f'<div style="border-left: 5px solid {theme["border"]}; background: {theme["bg"]}; '
-                f'padding: 14px; border-radius: 10px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">'
+                f'<div style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid {theme["border"]}; '
+                f'padding: 16px; border-radius: 14px; margin-bottom: 16px; box-shadow: 0 4px 16px -2px rgba(15,23,42,0.05);">'
                 f'{img_html}'
                 f'<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">'
-                f'<h4 style="margin: 0; color: {theme["text"]}; font-size: 16px;">{v.name}</h4>'
-                f'<span style="background: {theme["border"]}; color: white; font-size: 10px; font-weight: 700; '
-                f'padding: 3px 9px; border-radius: 9999px; white-space: nowrap;">{theme["badge"]}</span>'
+                f'<h4 style="margin: 0; color: #0f172a; font-size: 16px; font-weight: 800;">{v.name}</h4>'
+                f'<span style="background: {theme["bg"]}; color: {theme["text"]}; border: 1px solid {theme["border"]}33; '
+                f'font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 9999px; white-space: nowrap;">{theme["badge"]}</span>'
                 f'</div>'
-                f'<p style="font-size: 12.5px; color: #334155; margin: 8px 0;">{v.description_short}</p>'
-                f'<div style="font-size: 11.5px; color: #475569;">'
-                f'<b>Varsayılan Kalış:</b> {v.default_stay_min} dk | <b>Açılış:</b> {open_note}{price_info}'
+                f'<p style="font-size: 12.5px; color: #475569; margin: 8px 0; line-height: 1.45;">{v.description_short}</p>'
+                f'<div style="font-size: 12px; color: #64748b; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid #f1f5f9;">'
+                f'⏱️ <b>Varsayılan Kalış:</b> {v.default_stay_min} dk &nbsp;•&nbsp; 🕒 <b>Açılış:</b> {open_note}{price_info}'
                 f'</div>'
-                f'<div style="margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap;">'
-                f'<a href="{gmaps_pin}" target="_blank" style="font-size: 11.5px; color: #0f766e; text-decoration: none; font-weight: 700;">📍 Google Haritalar & Fotoğraflar →</a>'
-                f'<a href="{v.source_url}" target="_blank" style="font-size: 11.5px; color: #2563eb; text-decoration: none; font-weight: 600;">📖 {v.source_name} Kaynağı →</a>'
+                f'<div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">'
+                f'<a href="{gmaps_pin}" target="_blank" style="font-size: 11.5px; color: #0284c7; background: #f0f9ff; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-weight: 700;">📍 Google Haritalar & Fotoğraflar →</a>'
+                f'<a href="{v.source_url}" target="_blank" style="font-size: 11.5px; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-weight: 600;">📖 {v.source_name} Kaynağı →</a>'
                 f'</div>'
                 f'</div>'
             )
@@ -1431,14 +1531,9 @@ def _render_map_mode_selector(
     w_km = round(w_km, 2)
     d_km = round(d_km, 2)
 
-    st.caption(
-        "Google Haritalar gibi ulaşım modunu harita üzerinden seçin (çizgi geometrisi ve tüm durak saatleri otomatik güncellenir):"
-    )
     mc1, mc2 = st.columns(2)
-    walk_label = f"🚶 Yürüyüş Yolu ({w_min} dk • {w_km} km)"
-    drive_label = f"🚗 Araba Yolu ({d_min} dk • {d_km} km)"
     mc1.button(
-        walk_label,
+        f"🚶 Yürüyüş · {w_min} dk · {w_km} km",
         key=f"mode_walk_{key_prefix}",
         type="primary" if current_mode == "walking" else "secondary",
         width="stretch",
@@ -1446,7 +1541,7 @@ def _render_map_mode_selector(
         args=("walking", use_mock, target_day_idx),
     )
     mc2.button(
-        drive_label,
+        f"🚗 Araba · {d_min} dk · {d_km} km",
         key=f"mode_drive_{key_prefix}",
         type="primary" if current_mode == "driving" else "secondary",
         width="stretch",
@@ -1454,6 +1549,82 @@ def _render_map_mode_selector(
         args=("driving", use_mock, target_day_idx),
     )
     return current_mode
+
+
+def _render_map_legend() -> None:
+    items = [
+        ("#ea580c", "Yemek"),
+        ("#854d0e", "Konak & köşk"),
+        ("#a16207", "Anıt"),
+        ("#1e40af", "Müze"),
+        ("#047857", "Cami"),
+        ("#0284c7", "Park & sahil"),
+        ("#6d28d9", "Konaklama"),
+        ("#10b981", "Gezildi"),
+    ]
+    chips = "".join(f'<span><i style="background:{c};"></i>{t}</span>' for c, t in items)
+    st.markdown(f'<div class="rk-legend">{chips}</div>', unsafe_allow_html=True)
+
+
+def _stop_card_html(
+    s: Dict[str, Any],
+    day_num: int,
+    is_done: bool,
+    venues_by_id: Dict[str, Venue],
+    multi_day: bool,
+) -> str:
+    theme = _get_theme(s.get("category", ""))
+    dot_color = "#10b981" if is_done else theme["border"]
+    venue_obj = venues_by_id.get(s["venue_id"])
+    img_url = getattr(venue_obj, "image_url", None) if venue_obj else None
+    img_block = (
+        f'<img src="{img_url}" alt="{html.escape(s["name"])}" />'
+        if img_url
+        else '<div class="rk-noimg">📍</div>'
+    )
+    gmaps_pin = _google_maps_pin_url(s["lat"], s["lon"])
+    src_url = s.get("source_url") or gmaps_pin
+    expl_text = s.get("explanation") or (venue_obj.description_short if venue_obj else "")
+
+    is_hub = s.get("is_start") or s.get("is_end")
+    if s.get("is_start"):
+        time_block = f'<b>{s["arrival_time"]}</b><span>başlangıç</span>'
+    elif s.get("is_end"):
+        time_block = f'<b>{s["arrival_time"]}</b><span>dönüş</span>'
+    else:
+        time_block = f'<b>{s["arrival_time"]}</b><span>{s["departure_time"]}</span>'
+
+    oh_label = html.escape(str(s.get("opening_hours_label", "")))
+    if s.get("opening_hours_status") == "unknown":
+        oh_html = f'<span class="warn">⚠ {oh_label}</span>'
+    else:
+        oh_html = f"🕒 {oh_label}"
+    meta_parts = []
+    if not is_hub:
+        meta_parts.append(f"⏱ {s['stay_min']} dk")
+        meta_parts.append(oh_html)
+    if is_done:
+        meta_parts.append('<span style="color:#059669;font-weight:600;">✓ Gezildi</span>')
+    meta_html = " &nbsp;·&nbsp; ".join(meta_parts)
+
+    dot_label = f"{day_num}-{s['order']}" if multi_day else str(s["order"])
+    return (
+        '<div class="rk-stop">'
+        f'<div class="rk-time">{time_block}</div>'
+        f'<div class="rk-dot" style="background:{dot_color};">{dot_label}</div>'
+        f'<div class="rk-card{" done" if is_done else ""}">'
+        f"{img_block}"
+        '<div style="flex:1;min-width:0;">'
+        f'<div class="rk-name">{html.escape(s["name"])}</div>'
+        f'<span class="rk-chip" style="background:{theme["bg"]};color:{theme["text"]};">{theme["badge"]}</span>'
+        + (f'<div class="rk-meta">{meta_html}</div>' if meta_html else "")
+        + (f'<div class="rk-desc">{html.escape(expl_text)}</div>' if expl_text else "")
+        + '<div class="rk-links">'
+        f'<a href="{gmaps_pin}" target="_blank">Haritada aç ↗</a>'
+        f'<a href="{src_url}" target="_blank">Kaynak ↗</a>'
+        "</div>"
+        "</div></div></div>"
+    )
 
 
 def _render_day_view(
@@ -1469,208 +1640,202 @@ def _render_day_view(
     day_num = day_idx + 1
     current_mode = st.session_state.get("travel_mode", "walking")
     is_driving = current_mode == "driving"
-    m1, m2, m3, m4 = st.columns(4)
+    multi_day = len(st.session_state.get("day_plans", [])) > 1
     poi_count = sum(
         1
         for s in day_plan["stops"]
         if not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch")
     )
-    m1.metric(
-        "Toplam Araç Süresi" if is_driving else "Toplam Yürüme Süresi",
-        f"{day_plan['total_walk_min']} dk",
+
+    # 1) Özet şeridi
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Araç Süresi" if is_driving else "Yürüme Süresi", f"{day_plan['total_walk_min']} dk")
+    m2.metric("Araç Mesafesi" if is_driving else "Yürüme Mesafesi", f"{day_plan['total_walk_km']} km")
+    m3.metric("Durak", f"{poi_count} mekan")
+    m4.metric(
+        "Bitiş Saati",
+        day_plan["actual_end_time"],
+        help=f"Hedeflenen bitiş: {day_plan['requested_end_time']}",
     )
-    m2.metric(
-        "Toplam Araç Mesafesi" if is_driving else "Toplam Yürüme Mesafesi",
-        f"{day_plan['total_walk_km']} km",
-    )
-    m3.metric("Gezilecek Durak Sayısı", f"{poi_count} mekan")
-    m4.metric("Dönüş / Bitiş Saati", f"{day_plan['actual_end_time']} (Hedef: {day_plan['requested_end_time']})")
 
     if day_plan.get("summary_text"):
-        st.success(f"📋 **{day_title} Özeti:** {day_plan['summary_text']}")
+        st.success(day_plan["summary_text"], icon="🗺️")
 
-    if day_plan.get("warnings"):
-        warnings_md = "\n".join(f"- {w}" for w in day_plan["warnings"])
-        st.warning(f"⚠️ **Dikkat Edilmesi Gerekenler ve Saat Uyarıları ({day_title})**\n\n{warnings_md}")
+    warns = day_plan.get("warnings") or []
+    dropped = day_plan.get("dropped_venues") or []
+    if warns or dropped:
+        parts = []
+        if warns:
+            parts.append(f"{len(warns)} uyarı")
+        if dropped:
+            parts.append(f"{len(dropped)} mekan plana sığmadı")
+        with st.expander(f"⚠️ Dikkat: {' · '.join(parts)}"):
+            for w in warns:
+                st.markdown(f"- {w}")
+            if dropped:
+                st.markdown("**Plana alınamayan mekanlar**")
+                for d in dropped:
+                    st.markdown(f"- **{d['name']}** — {d['reason']}")
 
-    if day_plan.get("dropped_venues"):
-        with st.expander(f"Rotaya Alınamayan / Güne Sığmayan Mekanlar ({len(day_plan['dropped_venues'])})"):
-            for d in day_plan["dropped_venues"]:
-                st.write(f"- **{d['name']}**: {d['reason']}")
-
-    left_col, right_col = st.columns([1.25, 1.0])
+    st.write("")
+    left_col, right_col = st.columns([1.1, 1.0], gap="large")
 
     with left_col:
-        st.subheader("🕒 Görselli ve Renkli Durak Çizelgesi")
+        h1, h2 = st.columns([1.6, 1.0])
+        with h1:
+            st.markdown('<div class="rk-section-title">Günün akışı</div>', unsafe_allow_html=True)
+        edit_mode = False
+        if not use_mock:
+            with h2:
+                edit_mode = st.toggle(
+                    "✏️ Düzenle",
+                    key=f"edit_mode_{day_num}",
+                    help="Kalış sürelerini değiştir, gezilen yerleri işaretle, durak çıkar veya günü yeniden planla.",
+                )
+
         updated_durations: Dict[str, int] = {}
         completed_ids: List[str] = list(st.session_state.get("completed_stop_ids", []))
+        leg_icon = "🚗" if is_driving else "🚶"
 
         for s in day_plan["stops"]:
             is_poi = not s.get("is_start") and not s.get("is_end") and not s.get("is_lunch")
             is_done = s["venue_id"] in completed_ids
-            theme = _get_theme(s.get("category", ""))
 
-            border_color = "#10b981" if is_done else theme["border"]
-            bg_color = "#f0fdf4" if is_done else theme["bg"]
-
-            done_badge = ' <span style="color:#10b981; font-weight:700;">(Gezildi ✅)</span>' if is_done else ""
-            leg_mode_noun = "araçla sürüş" if is_driving else "yürüme"
-            walk_info = (
-                f"Önceki duraktan: <b>{s['walk_from_prev_min']} dk</b> ({s['walk_from_prev_m']} m) {leg_mode_noun}"
-                if s["order"] > 0
-                else "Günün başlangıç noktası"
-            )
-            venue_obj = venues_by_id.get(s["venue_id"])
-            img_url = getattr(venue_obj, "image_url", None) if venue_obj else None
-            img_block = (
-                f'<img src="{img_url}" style="width: 122px; height: 92px; object-fit: cover; '
-                f'border-radius: 8px; flex-shrink: 0; border: 1px solid #cbd5e1;" alt="{s["name"]}" />'
-                if img_url
-                else f'<div style="width: 122px; height: 92px; border-radius: 8px; flex-shrink: 0; '
-                f'background: #e2e8f0; display: flex; align-items: center; justify-content: center; '
-                f'font-size: 24px;">📍</div>'
-            )
-
-            gmaps_pin = _google_maps_pin_url(s["lat"], s["lon"])
-            src_url = s.get("source_url") or gmaps_pin
-            oh_style = (
-                "background:#fef3c7; color:#92400e; padding:1px 6px; border-radius:4px;"
-                if s.get("opening_hours_status") == "unknown"
-                else "background:#e2e8f0; color:#1e293b; padding:1px 6px; border-radius:4px;"
-            )
-            expl_text = s.get("explanation") or (venue_obj.description_short if venue_obj else "")
-
-            card_html = (
-                f'<div style="border-left: 6px solid {border_color}; background: {bg_color}; '
-                f'padding: 12px 14px; border-radius: 10px; margin-bottom: 6px; '
-                f'box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; gap: 14px; align-items: flex-start;">'
-                f'{img_block}'
-                f'<div style="flex: 1; min-width: 0;">'
-                f'<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap;">'
-                f'<div style="font-size: 14.5px; font-weight: 800; color: #0f172a;">'
-                f'{s["arrival_time"]} – {s["departure_time"]} | {day_num}-{s["order"]}. {s["name"]}{done_badge}'
-                f'</div>'
-                f'<span style="background: {border_color}; color: white; font-size: 10.5px; font-weight: 700; '
-                f'padding: 2px 9px; border-radius: 9999px; white-space: nowrap;">{theme["badge"]}</span>'
-                f'</div>'
-                f'<div style="font-size: 12px; color: #334155; margin-top: 4px;">'
-                f'{walk_info} • Açılış: <span style="{oh_style}">{s["opening_hours_label"]}</span>'
-                f'</div>'
-                f'<div style="font-size: 12px; color: #475569; margin-top: 5px; line-height: 1.4;">{expl_text}</div>'
-                f'<div style="margin-top: 5px; display: flex; gap: 12px; flex-wrap: wrap;">'
-                f'<a href="{gmaps_pin}" target="_blank" style="font-size: 11px; color: #0f766e; text-decoration: none; font-weight: 700;">📍 Haritada Konum & Foto</a>'
-                f'<a href="{src_url}" target="_blank" style="font-size: 11px; color: #2563eb; text-decoration: none; font-weight: 600;">📖 Kaynak</a>'
-                f'</div>'
-                f'</div>'
-                f'</div>'
-            )
-            st.markdown(card_html, unsafe_allow_html=True)
-
-            if is_poi or (s.get("is_lunch") and not use_mock):
-                ctl_c1, ctl_c2, ctl_c3 = st.columns([1.4, 1.3, 1.3])
-                if is_poi:
-                    with ctl_c1:
-                        updated_durations[s["venue_id"]] = st.number_input(
-                            "Kalış (dk)",
-                            min_value=5,
-                            max_value=240,
-                            step=5,
-                            value=int(s["stay_min"]),
-                            key=f"stay_{day_num}_{s['venue_id']}_{s['order']}",
-                        )
-                    if not use_mock:
-                        with ctl_c2:
-                            done_label = "↩️ Geri Al" if is_done else "✅ Gezildi"
-                            if st.button(
-                                done_label,
-                                key=f"done_{day_num}_{s['venue_id']}_{s['order']}",
-                                width="stretch",
-                            ):
-                                if is_done:
-                                    completed_ids.remove(s["venue_id"])
-                                else:
-                                    completed_ids.append(s["venue_id"])
-                                st.session_state["completed_stop_ids"] = completed_ids
-                                _persist_progress_if_saved_trip()
-                                st.rerun()
-                        with ctl_c3:
-                            if st.button(
-                                "🗑️ Çıkar",
-                                key=f"rm_{day_num}_{s['venue_id']}_{s['order']}",
-                                width="stretch",
-                            ):
-                                removed = list(st.session_state.get("removed_stop_ids", []))
-                                removed.append(s["venue_id"])
-                                st.session_state["removed_stop_ids"] = removed
-                                new_res = recalculate_trip(
-                                    parsed_request_dict=day_plan["parsed_request"],
-                                    custom_durations=updated_durations,
-                                    removed_venue_ids=removed,
-                                    travel_mode=current_mode,
-                                )
-                                st.session_state["day_plans"][day_idx] = new_res.model_dump()
-                                st.rerun()
-                elif s.get("is_lunch") and not use_mock:
-                    with ctl_c2:
-                        done_label = "↩️ Yemek Geri Al" if is_done else "✅ Yemek Yenildi"
-                        if st.button(
-                            done_label,
-                            key=f"done_lunch_{day_num}_{s['order']}",
-                            width="stretch",
-                        ):
-                            if is_done:
-                                completed_ids.remove(s["venue_id"])
-                            else:
-                                completed_ids.append(s["venue_id"])
-                            st.session_state["completed_stop_ids"] = completed_ids
-                            _persist_progress_if_saved_trip()
-                            st.rerun()
-
-            if s.get("is_lunch") and s.get("restaurant_options"):
-                lunch_dist_label = "araç mesafesi" if is_driving else "yürüme"
+            if s["order"] > 0:
                 st.markdown(
-                    '<div style="background: #fff7ed; border: 1px dashed #ea580c; border-radius: 8px; padding: 6px 12px; margin: 4px 0 8px 0;">'
-                    f'<span style="color: #c2410c; font-weight: 700; font-size: 12.5px;">🍽️ Öğle Yemeği Yeri Alternatifleri (≤ 10 dk {lunch_dist_label}):</span>'
-                    '</div>',
+                    f'<div class="rk-leg">{leg_icon} {s["walk_from_prev_min"]} dk · {s["walk_from_prev_m"]} m</div>',
                     unsafe_allow_html=True,
                 )
+            st.markdown(
+                _stop_card_html(s, day_num, is_done, venues_by_id, multi_day),
+                unsafe_allow_html=True,
+            )
+
+            if is_poi:
+                updated_durations[s["venue_id"]] = int(s["stay_min"])
+
+            if edit_mode and is_poi:
+                ctl_c0, ctl_c1, ctl_c2, ctl_c3 = st.columns([0.55, 1.3, 1.1, 1.0])
+                with ctl_c1:
+                    updated_durations[s["venue_id"]] = st.number_input(
+                        "Kalış (dk)",
+                        min_value=5,
+                        max_value=240,
+                        step=5,
+                        value=int(s["stay_min"]),
+                        key=f"stay_{day_num}_{s['venue_id']}_{s['order']}",
+                        label_visibility="collapsed",
+                    )
+                with ctl_c2:
+                    done_label = "↩️ Geri al" if is_done else "✅ Gezildi"
+                    if st.button(done_label, key=f"done_{day_num}_{s['venue_id']}_{s['order']}", width="stretch"):
+                        if is_done:
+                            completed_ids.remove(s["venue_id"])
+                        else:
+                            completed_ids.append(s["venue_id"])
+                        st.session_state["completed_stop_ids"] = completed_ids
+                        _persist_progress_if_saved_trip()
+                        st.rerun()
+                with ctl_c3:
+                    if st.button("🗑️ Çıkar", key=f"rm_{day_num}_{s['venue_id']}_{s['order']}", width="stretch"):
+                        removed = list(st.session_state.get("removed_stop_ids", []))
+                        removed.append(s["venue_id"])
+                        st.session_state["removed_stop_ids"] = removed
+                        new_res = recalculate_trip(
+                            parsed_request_dict=day_plan["parsed_request"],
+                            custom_durations=updated_durations,
+                            removed_venue_ids=removed,
+                            travel_mode=current_mode,
+                        )
+                        st.session_state["day_plans"][day_idx] = new_res.model_dump()
+                        st.rerun()
+            elif edit_mode and s.get("is_lunch"):
+                _, lc2 = st.columns([0.55, 3.4])
+                with lc2:
+                    done_label = "↩️ Yemeği geri al" if is_done else "✅ Yemek yenildi"
+                    if st.button(done_label, key=f"done_lunch_{day_num}_{s['order']}"):
+                        if is_done:
+                            completed_ids.remove(s["venue_id"])
+                        else:
+                            completed_ids.append(s["venue_id"])
+                        st.session_state["completed_stop_ids"] = completed_ids
+                        _persist_progress_if_saved_trip()
+                        st.rerun()
+
+            if s.get("is_lunch") and s.get("restaurant_options"):
                 opts = s["restaurant_options"]
                 opt_labels = {
                     o["venue_id"]: (
-                        f"{o['name']} — {o['walk_from_stop_min']} dk ({o['walk_from_stop_m']} m) "
-                        f"• {', '.join(o.get('cuisine_tags', [])[:2])}"
+                        f"{o['name']} — {o['walk_from_stop_min']} dk"
+                        f" • {', '.join(o.get('cuisine_tags', [])[:2])}"
                         f"{' • ' + o['price_range'] if o.get('price_range') else ''}"
                     )
                     for o in opts
                 }
-                current_rest_id = (
-                    s["venue_id"] if s["venue_id"] in opt_labels else opts[0]["venue_id"]
-                )
-                chosen_rest_id = st.radio(
-                    "Restoran seçimi:",
-                    options=list(opt_labels.keys()),
-                    index=list(opt_labels.keys()).index(current_rest_id),
-                    format_func=lambda vid: opt_labels[vid],
-                    key=f"lunch_radio_{day_num}_{s['order']}",
-                    label_visibility="collapsed",
-                )
-                if chosen_rest_id != s["venue_id"]:
-                    st.session_state["day_plans"][day_idx] = _apply_restaurant_choice(
-                        day_plan, chosen_rest_id
+                current_rest_id = s["venue_id"] if s["venue_id"] in opt_labels else opts[0]["venue_id"]
+                _, rc2 = st.columns([0.55, 3.4])
+                with rc2:
+                    chosen_rest_id = st.selectbox(
+                        f"🍽️ Restoran seçenekleri (≤ 10 dk {'araç' if is_driving else 'yürüme'})",
+                        options=list(opt_labels.keys()),
+                        index=list(opt_labels.keys()).index(current_rest_id),
+                        format_func=lambda vid: opt_labels[vid],
+                        key=f"lunch_radio_{day_num}_{s['order']}",
                     )
+                if chosen_rest_id != s["venue_id"]:
+                    st.session_state["day_plans"][day_idx] = _apply_restaurant_choice(day_plan, chosen_rest_id)
                     st.rerun()
 
-        if not use_mock and updated_durations:
-            st.divider()
-            bcol1, bcol2 = st.columns(2)
-            if bcol1.button(
-                f"⏱️ {day_title} Kalış Sürelerini ve Kalanı Yeniden Hesapla",
-                key=f"btn_recalc_{day_num}",
-                width="stretch",
-            ):
-                if completed_ids:
+        if edit_mode and not use_mock and updated_durations:
+            st.write("")
+            with st.container(border=True):
+                st.markdown("**Değişiklikleri uygula**")
+                bcol1, bcol2 = st.columns(2)
+                if bcol1.button(
+                    "⏱️ Yeniden Hesapla",
+                    key=f"btn_recalc_{day_num}",
+                    type="primary",
+                    width="stretch",
+                ):
+                    if completed_ids:
+                        last_done = next(
+                            (x for x in reversed(day_plan["stops"]) if x["venue_id"] in completed_ids),
+                            None,
+                        )
+                        start_loc = last_done["venue_id"] if last_done else day_plan["stops"][0]["venue_id"]
+                        start_t = last_done["departure_time"] if last_done else day_plan["requested_start_time"]
+                        try:
+                            new_res = recalculate_from_midday(
+                                parsed_request_dict=day_plan["parsed_request"],
+                                current_venue_id=start_loc,
+                                current_time=start_t,
+                                completed_venue_ids=completed_ids,
+                                custom_durations=updated_durations,
+                                removed_venue_ids=st.session_state.get("removed_stop_ids", []),
+                                travel_mode=current_mode,
+                            )
+                            st.session_state["day_plans"][day_idx] = new_res.model_dump()
+                            st.session_state["completed_stop_ids"] = []
+                            st.rerun()
+                        except ValueError as err:
+                            st.error(str(err))
+                    else:
+                        new_res = recalculate_trip(
+                            parsed_request_dict=day_plan["parsed_request"],
+                            custom_durations=updated_durations,
+                            removed_venue_ids=st.session_state.get("removed_stop_ids", []),
+                            travel_mode=current_mode,
+                        )
+                        st.session_state["day_plans"][day_idx] = new_res.model_dump()
+                        st.rerun()
+
+                if completed_ids and bcol2.button(
+                    "✅ Gezilenleri çıkar, kalanı güncelle",
+                    key=f"btn_done_recalc_{day_num}",
+                    width="stretch",
+                ):
                     last_done = next(
-                        (s for s in reversed(day_plan["stops"]) if s["venue_id"] in completed_ids),
+                        (x for x in reversed(day_plan["stops"]) if x["venue_id"] in completed_ids),
                         None,
                     )
                     start_loc = last_done["venue_id"] if last_done else day_plan["stops"][0]["venue_id"]
@@ -1690,87 +1855,44 @@ def _render_day_view(
                         st.rerun()
                     except ValueError as err:
                         st.error(str(err))
-                else:
-                    new_res = recalculate_trip(
-                        parsed_request_dict=day_plan["parsed_request"],
-                        custom_durations=updated_durations,
-                        removed_venue_ids=st.session_state.get("removed_stop_ids", []),
-                        travel_mode=current_mode,
-                    )
-                    st.session_state["day_plans"][day_idx] = new_res.model_dump()
-                    st.rerun()
 
-            if completed_ids and bcol2.button(
-                f"✅ {day_title} Gezilenleri Çıkarıp Kalanı Güncelle",
-                key=f"btn_done_recalc_{day_num}",
-                width="stretch",
-            ):
-                last_done = next(
-                    (s for s in reversed(day_plan["stops"]) if s["venue_id"] in completed_ids),
-                    None,
-                )
-                start_loc = last_done["venue_id"] if last_done else day_plan["stops"][0]["venue_id"]
-                start_t = last_done["departure_time"] if last_done else day_plan["requested_start_time"]
-                try:
-                    new_res = recalculate_from_midday(
-                        parsed_request_dict=day_plan["parsed_request"],
-                        current_venue_id=start_loc,
-                        current_time=start_t,
-                        completed_venue_ids=completed_ids,
-                        custom_durations=updated_durations,
-                        removed_venue_ids=st.session_state.get("removed_stop_ids", []),
-                        travel_mode=current_mode,
-                    )
-                    st.session_state["day_plans"][day_idx] = new_res.model_dump()
-                    st.session_state["completed_stop_ids"] = []
-                    st.rerun()
-                except ValueError as err:
-                    st.error(str(err))
-
+        if not use_mock:
             # Slayt 4: Gün ortasında yeni plan (kullanıcının anlık konumu ve saati yeni başlangıç olur)
-            with st.expander(f"🧭 {day_title} — Gün Ortasında Yeni Plan (Anlık Konum & Saat)", expanded=bool(completed_ids)):
-                st.caption(
-                    "Gezinin ortasındaysanız şu an bulunduğunuz yeri ve saati seçin; tamamlanan mekanlar çıkarılır ve kalan gün buradan yeniden planlanır."
-                )
+            with st.expander("🧭 Gün ortasında yeni plan (şu anki konum ve saatten)", expanded=False):
+                st.caption("Tamamlanan mekanlar çıkarılır, kalan gün bulunduğunuz yerden yeniden planlanır.")
                 all_non_rest = [v for v in venues if not v.is_restaurant]
                 id_by_label = {v.name: v.id for v in all_non_rest}
                 labels = list(id_by_label.keys())
 
                 last_done_stop = next(
-                    (s for s in reversed(day_plan["stops"]) if s["venue_id"] in completed_ids),
+                    (x for x in reversed(day_plan["stops"]) if x["venue_id"] in completed_ids),
                     day_plan["stops"][0],
                 )
-                default_loc_name = venues_by_id.get(last_done_stop["venue_id"], all_non_rest[0]).name
+                default_loc_obj = venues_by_id.get(last_done_stop["venue_id"])
+                default_loc_name = default_loc_obj.name if default_loc_obj else all_non_rest[0].name
                 default_idx = labels.index(default_loc_name) if default_loc_name in labels else 0
                 default_time = last_done_stop.get("departure_time", "13:00")
 
-                mc1, mc2, mc3 = st.columns([1.6, 1.0, 1.4])
+                mc1, mc2 = st.columns([1.6, 1.0])
                 with mc1:
                     mid_loc_name = st.selectbox(
-                        "Şu Anki Konumunuz:",
+                        "Şu anki konumunuz",
                         options=labels,
                         index=default_idx,
                         key=f"mid_loc_{day_num}",
                     )
                 with mc2:
-                    mid_time = st.text_input(
-                        "Şu Anki Saat (HH:MM):",
-                        value=default_time,
-                        key=f"mid_time_{day_num}",
-                    )
-                with mc3:
-                    already_ate = any(
-                        s.get("is_lunch") and s["venue_id"] in completed_ids
-                        for s in day_plan["stops"]
-                    )
-                    mid_want_lunch = st.checkbox(
-                        "Kalan planda öğle yemeği olsun",
-                        value=not already_ate and hhmm_to_min(default_time) < 855,
-                        key=f"mid_lunch_{day_num}",
-                    )
-
+                    mid_time = st.text_input("Saat (SS:DD)", value=default_time, key=f"mid_time_{day_num}")
+                already_ate = any(
+                    x.get("is_lunch") and x["venue_id"] in completed_ids for x in day_plan["stops"]
+                )
+                mid_want_lunch = st.checkbox(
+                    "Kalan planda öğle yemeği olsun",
+                    value=not already_ate and hhmm_to_min(default_time) < 855,
+                    key=f"mid_lunch_{day_num}",
+                )
                 if st.button(
-                    f"🚀 {day_title} Kalan Günü Şu Anki Konumumdan Yeniden Planla",
+                    "🚀 Kalan günü buradan planla",
                     key=f"btn_midday_{day_num}",
                     type="primary",
                     width="stretch",
@@ -1794,9 +1916,7 @@ def _render_day_view(
                         st.error(str(err))
 
     with right_col:
-        st.subheader(
-            f"🗺️ {day_title} {'Araç (Araba) Haritası' if is_driving else 'Yürüyüş Haritası'}"
-        )
+        st.markdown('<div class="rk-section-title">Harita</div>', unsafe_allow_html=True)
         active_mode = _render_map_mode_selector(
             stops_list=[day_plan["stops"]],
             key_prefix=f"day_{day_num}",
@@ -1804,34 +1924,29 @@ def _render_day_view(
             custom_durations_override=updated_durations,
             target_day_idx=day_idx,
         )
-        map_line_color = (
-            [225, 29, 72, 225]
-            if active_mode == "driving" and len(st.session_state.get("day_plans", [])) <= 1
-            else color_rgb
-        )
+        map_line_color = [225, 29, 72, 225] if active_mode == "driving" and not multi_day else color_rgb
         deck = _build_pydeck_map(
             day_plan,
             use_street_routing=use_street_routing,
             route_color=map_line_color,
-            day_prefix=f"{day_num}-" if len(st.session_state.get("day_plans", [])) > 1 else "",
+            day_prefix=f"{day_num}-" if multi_day else "",
             travel_mode=active_mode,
             venues_by_id=venues_by_id,
         )
-
-        map_tab1, map_tab2 = st.tabs(["🗺️ Canlı Rota Haritası", "🌐 İnteraktif Rehber (Leaflet)"])
+        map_tab1, map_tab2 = st.tabs(["Harita", "Detaylı harita"])
         with map_tab1:
-            st.pydeck_chart(deck, width="stretch", height=580)
+            st.pydeck_chart(deck, width="stretch", height=540)
         with map_tab2:
             _render_leaflet_route_map(
                 day_plans=[day_plan],
                 travel_mode=active_mode,
                 use_street_routing=use_street_routing,
                 venues_by_id=venues_by_id,
-                height=580,
+                height=540,
             )
-
+        _render_map_legend()
         st.link_button(
-            f"🧭 {day_title} Rotasını Google Haritalar'da Aç ({'Araba' if active_mode == 'driving' else 'Yürüyüş'})",
+            "Google Haritalar'da aç ↗",
             _google_maps_walking_url(day_plan, travel_mode=active_mode),
             width="stretch",
         )
@@ -1841,16 +1956,16 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
     daily_limit = int(os.getenv("DAILY_LIMIT_PER_SESSION", "15"))
 
     with st.sidebar:
-        st.header("👤 Profilim & Kayıtlı Geziler")
+        st.markdown("### 👤 Hesap")
         sb_user = st.session_state.get("auth_user")
         if sb_user:
             sb_trips = storage.list_saved_trips(sb_user)
-            st.success(f"**{sb_user['full_name']}**\n\n`{sb_user['email']}`")
+            st.markdown(f"**{sb_user['full_name']}**  \n{sb_user['email']}")
             sb_c1, sb_c2 = st.columns([1.4, 1.0])
             if sb_c1.button(f"📂 Gezilerim ({len(sb_trips)})", key="sb_open_prof", width="stretch"):
                 st.session_state["active_page"] = "account"
                 st.rerun()
-            if sb_c2.button("🚪 Çıkış", key="sb_logout", width="stretch"):
+            if sb_c2.button("Çıkış", key="sb_logout", width="stretch"):
                 storage.logout_user()
                 st.session_state["auth_user"] = None
                 st.session_state["active_trip_id"] = None
@@ -1860,7 +1975,7 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
             if local_profs:
                 first_p = local_profs[0]
                 if st.button(
-                    f"⚡ {first_p['full_name']} Profiline Gir",
+                    f"⚡ {first_p['full_name']} olarak gir",
                     key="sb_quick_login",
                     type="primary",
                     width="stretch",
@@ -1870,44 +1985,12 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                         st.session_state["auth_user"] = logged_u
                         st.toast(msg)
                         st.rerun()
-            if st.button("🔑 Hesap & Giriş Ekranı", key="sb_go_acc", width="stretch"):
+            if st.button("🔑 Giriş yap / Hesap aç", key="sb_go_acc", width="stretch"):
                 st.session_state["active_page"] = "account"
                 st.rerun()
 
         st.divider()
-        st.header("⚙️ Sistem Ayarları & Kota")
-        default_mock = os.getenv("USE_MOCK_UI", "false").lower() == "true"
-        use_mock = st.toggle(
-            "Mock (Demo) Modu",
-            value=default_mock,
-            help="Diğer modüller olmadan contracts/mock_final_response.json ile test et.",
-        )
-        use_street_geom = st.toggle(
-            "Sokak Kıvrımlı Harita (OSM Yaya / Araç)",
-            value=True,
-            help="Açıldığında harita çizgisi gerçek kaldırımları veya tek yönlü araç yollarını takip eder.",
-        )
-        st.metric("Oturum İstek Kotası", f"{st.session_state['request_count']} / {daily_limit}")
-
-        st.divider()
-        st.subheader("🎨 Kategori Renk Kodları")
-        st.markdown(
-            textwrap.dedent(
-                """
-                * <span style="color:#ea580c; font-weight:700;">● Turuncu:</span> Öğle Yemeği & Restoranlar
-                * <span style="color:#854d0e; font-weight:700;">● Kahverengi:</span> Tarihi Konaklar & Köşkler
-                * <span style="color:#a16207; font-weight:700;">● Antik Kahve:</span> Anıt & Saat Kulesi
-                * <span style="color:#1e40af; font-weight:700;">● Lacivert:</span> Müzeler & Sanayi Tarihi
-                * <span style="color:#047857; font-weight:700;">● Zümrüt Yeşili:</span> Camiler & Külliyeler
-                * <span style="color:#0284c7; font-weight:700;">● Körfez Mavisi:</span> Sahil & Park Alanı
-                * <span style="color:#6d28d9; font-weight:700;">● Mor:</span> Konaklama Oteli
-                """
-            ).strip(),
-            unsafe_allow_html=True,
-        )
-
-        st.divider()
-        st.subheader("💡 Hızlı Örnek İstekler")
+        st.markdown("### 💡 Örnek istekler")
         presets = {
             "Klasik İzmit Kültür Turu (1 Gün)": DEFAULT_PROMPT,
             "2 Günlük Otel Başlangıçlı Hafta Sonu": (
@@ -1923,9 +2006,24 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 "Salı 10:00 - 17:00 arası Seka Park ve sahil yürüyüşü yapıp öğlen balık yemek istiyorum."
             ),
         }
-        chosen_preset = st.selectbox("Hazır senaryo seç", list(presets.keys()))
-        if st.button("Örneği Kutuya Aktar", width="stretch"):
+        chosen_preset = st.selectbox("Hazır senaryo", list(presets.keys()), label_visibility="collapsed")
+        if st.button("Örneği kutuya aktar", width="stretch"):
             st.session_state["prompt_box"] = presets[chosen_preset]
+
+        st.divider()
+        with st.expander("⚙️ Gelişmiş ayarlar"):
+            default_mock = os.getenv("USE_MOCK_UI", "false").lower() == "true"
+            use_mock = st.toggle(
+                "Demo (mock) modu",
+                value=default_mock,
+                help="Diğer modüller olmadan contracts/mock_final_response.json ile test et.",
+            )
+            use_street_geom = st.toggle(
+                "Haritada gerçek sokak çizgileri",
+                value=True,
+                help="Açıkken harita çizgisi gerçek kaldırımları veya araç yollarını takip eder.",
+            )
+            st.caption(f"Oturum istek kotası: {st.session_state['request_count']} / {daily_limit}")
 
     city_opts = get_city_options()
     venue_choices = city_opts["venues"]
@@ -1936,56 +2034,54 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
     hotel_options = ["(Yok / Başlangıç Noktası Kullan)"] + [h["name"] for h in hotels]
     hotel_id_by_name = {h["name"]: h["id"] for h in hotels}
 
-    with st.form("route_form"):
-        c_top1, c_top2 = st.columns([1.4, 1.2])
+    # --- Arama kartı ---
+    with st.form("route_form", border=True):
+        st.markdown('<div class="rk-section-title">Nasıl bir gezi istersin?</div>', unsafe_allow_html=True)
+        user_text = st.text_area(
+            "Gezi isteğiniz",
+            value=st.session_state.get("prompt_box", DEFAULT_PROMPT),
+            height=80,
+            label_visibility="collapsed",
+            placeholder="Örn: Cumartesi 09:30'da İzmit Garı'ndan başlayıp müzeleri gezmek istiyorum, öğlen iskender yiyelim.",
+        )
+        c_top1, c_top2, c_top3 = st.columns([1.5, 1.4, 0.9], vertical_alignment="bottom")
         with c_top1:
             day_count_selected = st.radio(
-                "📅 Gezi Kaç Gün Olacak?",
-                [
-                    "Otomatik (Metinden Algıla)",
-                    "1 Gün (Günübirlik)",
-                    "2 Gün (Hafta Sonu)",
-                    "3 Gün (Kapsamlı)",
-                ],
+                "Gün sayısı",
+                ["Otomatik", "1 gün", "2 gün", "3 gün"],
                 horizontal=True,
                 index=0,
             )
         with c_top2:
             acc_choice = st.selectbox(
-                "🏨 Konaklama Yeri (Çok günlük turlarda her gün buradan başlar/biter)",
+                "Konaklama (çok günlük turlarda başlangıç/bitiş)",
                 options=hotel_options,
                 index=0,
             )
+        with c_top3:
+            submitted = st.form_submit_button("🗺️ Rota Oluştur", type="primary", width="stretch")
 
-        user_text = st.text_area(
-            "Gezi İsteğinizi Doğal Türkçe ile Yazın:",
-            value=st.session_state.get("prompt_box", DEFAULT_PROMPT),
-            height=88,
-        )
-        with st.expander("İsteğe Bağlı Detaylı Filtreler (Başlangıç, Bitiş, Saat, Yemek)"):
-            c1, c2, c3, c4 = st.columns(4)
+        with st.expander("Detaylı ayarlar (gün, başlangıç/bitiş, saat, yemek)"):
+            c1, c2, c3 = st.columns(3)
             with c1:
                 day_choice = st.selectbox(
-                    "Başlangıç Günü",
+                    "Başlangıç günü",
                     ["(Metinden)", *list(DAY_LABELS_TR.keys())],
                     format_func=lambda x: DAY_LABELS_TR.get(x, x),
                 )
             with c2:
-                start_choice = st.selectbox("Başlangıç Noktası", venue_names)
+                start_choice = st.selectbox("Başlangıç noktası", venue_names)
             with c3:
-                end_choice = st.selectbox("Bitiş Noktası", venue_names)
-            with c4:
-                food_override = st.text_input("Yemek Tercihi", placeholder="Örn: iskender, köfte, balık, pide")
-
-            t1, t2, t3 = st.columns(3)
+                end_choice = st.selectbox("Bitiş noktası", venue_names)
+            t1, t2, t3, t4 = st.columns(4)
             with t1:
-                start_time_ov = st.text_input("Başlangıç Saati", placeholder="09:30")
+                start_time_ov = st.text_input("Başlangıç saati", placeholder="09:30")
             with t2:
-                end_time_ov = st.text_input("Bitiş Saati", placeholder="17:00")
+                end_time_ov = st.text_input("Bitiş saati", placeholder="17:00")
             with t3:
-                lunch_ov = st.selectbox("Öğle Yemeği", ["(Metinden)", "Evet", "Hayır"])
-
-        submitted = st.form_submit_button("🗺️ Rota Oluştur", type="primary", width="stretch")
+                lunch_ov = st.selectbox("Öğle yemeği", ["(Metinden)", "Evet", "Hayır"])
+            with t4:
+                food_override = st.text_input("Yemek tercihi", placeholder="iskender, balık…")
 
     if submitted:
         st.session_state["prompt_box"] = user_text
@@ -2048,22 +2144,20 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 if lunch_ov != "(Metinden)":
                     overrides["want_lunch"] = lunch_ov == "Evet"
 
-                if day_count_selected.startswith("1 Gün"):
+                if day_count_selected.startswith("1"):
                     overrides["num_days"] = 1
-                elif day_count_selected.startswith("2 Gün"):
+                elif day_count_selected.startswith("2"):
                     overrides["num_days"] = 2
-                elif day_count_selected.startswith("3 Gün"):
+                elif day_count_selected.startswith("3"):
                     overrides["num_days"] = 3
 
                 spinner_msg = (
                     "En kısa araç rotası ve saatler hesaplanıyor..."
                     if active_mode == "driving"
-                    else "En az yürüyüşlü rota, yaya yolları ve saatler hesaplanıyor..."
+                    else "En az yürüyüşlü rota ve saatler hesaplanıyor..."
                 )
                 with st.spinner(spinner_msg):
-                    res_list = plan_multi_day_trip(
-                        user_text, overrides=overrides, travel_mode=active_mode
-                    )
+                    res_list = plan_multi_day_trip(user_text, overrides=overrides, travel_mode=active_mode)
                     plan_dicts = [r.model_dump() for r in res_list]
                     st.session_state["plan_cache"][cache_key] = plan_dicts
                     st.session_state["day_plans"] = json.loads(json.dumps(plan_dicts))
@@ -2079,27 +2173,21 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
     current_mode = st.session_state.get("travel_mode", "walking")
     is_driving = current_mode == "driving"
 
-    # Slayt 4: Alternatif plan + Planı Hesaba Kaydet çubuğu
+    # Slayt 4: Alternatif plan + Planı hesaba kaydet (tek satır, sade)
     if not use_mock:
         with st.container(border=True):
-            fb_c1, fb_c2, save_c1, save_c2 = st.columns([2.2, 1.3, 1.5, 1.2])
+            fb_c1, fb_c2, save_c1, save_c2 = st.columns([2.4, 1.0, 1.5, 1.0], vertical_alignment="bottom")
             with fb_c1:
                 fb_text = st.text_input(
-                    "✨ Alternatif Plan İste (Mevcut kısıtları günceller):",
-                    placeholder="Örn: daha az müze, daha çok park veya saat 16:00'da bitsin, köfte olsun...",
+                    "✨ Planı değiştir",
+                    placeholder="Örn: daha az müze, daha çok park · 16:00'da bitsin · köfte olsun",
                     key="feedback_box",
                 )
             with fb_c2:
-                st.write("")
-                st.write("")
-                if st.button("🔄 Alternatif Plan Oluştur", key="btn_alt_feedback", width="stretch"):
+                if st.button("🔄 Alternatif plan", key="btn_alt_feedback", width="stretch"):
                     if fb_text.strip():
                         base_req = day_plans[0]["parsed_request"]
-                        acc_override = (
-                            hotel_id_by_name[acc_choice]
-                            if acc_choice in hotel_id_by_name
-                            else None
-                        )
+                        acc_override = hotel_id_by_name[acc_choice] if acc_choice in hotel_id_by_name else None
                         new_list = replan_with_feedback(
                             current_parsed_dict=base_req,
                             feedback_text=fb_text.strip(),
@@ -2116,17 +2204,14 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                         st.rerun()
                     else:
                         st.warning("Önce değişiklik isteğinizi yazın.")
-
             with save_c1:
                 trip_title = st.text_input(
-                    "💾 Gezi Başlığı:",
+                    "💾 Gezi adı",
                     value=f"Kocaeli Turu ({len(day_plans)} Gün)",
                     key="save_trip_title",
                 )
             with save_c2:
-                st.write("")
-                st.write("")
-                if st.button("💾 Beğendiğim Planı Kaydet", key="btn_save_trip", type="primary", width="stretch"):
+                if st.button("💾 Kaydet", key="btn_save_trip", type="primary", width="stretch"):
                     user = st.session_state.get("auth_user")
                     if not user:
                         local_profs = storage.list_local_users()
@@ -2136,9 +2221,7 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                                 st.session_state["auth_user"] = auto_u
                                 user = auto_u
                     if not user:
-                        st.warning(
-                            "Planı kaydetmek için üst menüdeki **👤 Profilim & Kayıtlı Geziler** sekmesinden ücretsiz hesap açın veya giriş yapın."
-                        )
+                        st.warning("Planı kaydetmek için üst menüdeki **👤 Giriş / Profil** sekmesinden hesap açın.")
                     else:
                         ok, msg, saved_id = storage.save_trip(
                             user=user,
@@ -2149,35 +2232,26 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                         )
                         if ok:
                             st.session_state["active_trip_id"] = saved_id
-                            st.success(msg)
+                            st.toast(msg)
                         else:
                             st.error(msg)
 
     if len(day_plans) >= 2:
         start_hub_name = day_plans[0]["stops"][0]["name"] if day_plans[0].get("stops") else ""
         if "Otel" in start_hub_name or "Konaklama" in start_hub_name:
-            st.info(
-                f"🏨 **Konaklama Kuralı Aktif:** Seçilen **{start_hub_name}** her {len(day_plans)} günün sabah başlangıç ve akşam bitiş noktası olarak belirlendi."
-            )
+            st.caption(f"🏨 Her gün **{start_hub_name}** noktasından başlar ve orada biter.")
 
         tab_labels: List[str] = []
         for idx, dp in enumerate(day_plans):
-            d_col = DAY_COLORS[idx % len(DAY_COLORS)]
             d_tr = DAY_LABELS_TR.get(dp.get("day_of_week", ""), dp.get("day_of_week", ""))
-            tab_labels.append(f"📅 {idx + 1}. Gün: {d_tr} ({d_col['name']})")
-        tab_labels.extend(
-            [
-                f"🗺️ {len(day_plans)} Günlük Birleşik Harita",
-                "📋 Slayt 5 İndirme & Karşılaştırma",
-            ]
-        )
+            tab_labels.append(f"{idx + 1}. Gün · {d_tr}")
+        tab_labels.extend(["Tüm günler haritası", "Çizelge & indir"])
 
         tabs = st.tabs(tab_labels)
         for idx, dp in enumerate(day_plans):
             d_col = DAY_COLORS[idx % len(DAY_COLORS)]
             d_tr = DAY_LABELS_TR.get(dp.get("day_of_week", ""), dp.get("day_of_week", ""))
             with tabs[idx]:
-                st.markdown(f"### {idx + 1}. Gün ({d_tr}) — {d_col['name']} Rota")
                 _render_day_view(
                     day_plan=dp,
                     day_idx=idx,
@@ -2190,9 +2264,6 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 )
 
         with tabs[-2]:
-            st.markdown(
-                f"### 🗺️ {len(day_plans)} Günlük Birleşik {'Araç (Araba)' if is_driving else 'Yürüyüş'} Haritası"
-            )
             tot_walk = sum(dp["total_walk_min"] for dp in day_plans)
             tot_km = round(sum(dp["total_walk_km"] for dp in day_plans), 2)
             tot_pois = sum(
@@ -2203,9 +2274,10 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 )
                 for dp in day_plans
             )
-            mode_noun = "araç sürüşü" if is_driving else "yürüme"
+            mode_noun = "araç" if is_driving else "yürüme"
             st.success(
-                f"🎉 **Çok Günlü Tur Özeti:** Toplam {tot_walk} dk {mode_noun} | {tot_km} km yol | {tot_pois} farklı mekan | {len(day_plans)} gün!"
+                f"{len(day_plans)} gün · {tot_pois} mekan · toplam {tot_walk} dk {mode_noun} · {tot_km} km",
+                icon="🗺️",
             )
             combined_mode = _render_map_mode_selector(
                 stops_list=[dp["stops"] for dp in day_plans],
@@ -2216,11 +2288,9 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
             for idx, dp in enumerate(day_plans):
                 d_col = DAY_COLORS[idx % len(DAY_COLORS)]
                 d_tr = DAY_LABELS_TR.get(dp.get("day_of_week", ""), dp.get("day_of_week", ""))
-                legend_parts.append(
-                    f'<span style="color:{d_col["hex"]}; font-weight:700; margin-right:16px;">● {idx + 1}. Gün ({d_tr} - {d_col["name"]})</span>'
-                )
-            st.markdown("".join(legend_parts), unsafe_allow_html=True)
-            comb_tab1, comb_tab2 = st.tabs(["🗺️ Birleşik Canlı Harita", "🌐 İnteraktif Rehber (Leaflet)"])
+                legend_parts.append(f'<span><i style="background:{d_col["hex"]};"></i>{idx + 1}. Gün ({d_tr})</span>')
+            st.markdown(f'<div class="rk-legend">{"".join(legend_parts)}</div>', unsafe_allow_html=True)
+            comb_tab1, comb_tab2 = st.tabs(["Harita", "Detaylı harita"])
             with comb_tab1:
                 combined_deck = _build_multi_day_pydeck_map(
                     day_plans,
@@ -2238,28 +2308,22 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 )
 
         with tabs[-1]:
-            st.subheader("📋 Slayt 5 Formatında Günlük Zaman Çizelgeleri & İndirme")
             dl_cols = st.columns(len(day_plans))
             for idx, dp in enumerate(day_plans):
                 d_tr = DAY_LABELS_TR.get(dp.get("day_of_week", ""), dp.get("day_of_week", ""))
                 with dl_cols[idx]:
-                    st.markdown(f"#### {idx + 1}. Gün: {d_tr}")
+                    st.markdown(f"**{idx + 1}. Gün · {d_tr}**")
                     txt_d = _format_slide5_schedule(dp, travel_mode=current_mode)
                     st.code(txt_d, language="text")
                     st.download_button(
-                        f"📥 {idx + 1}. Gün Planını İndir (.txt)",
+                        f"📥 {idx + 1}. günü indir (.txt)",
                         data=txt_d,
                         file_name=f"kocaeli_gezi_{idx + 1}gun.txt",
                         mime="text/plain",
                         key=f"dl_day_{idx}",
                     )
     else:
-        tab_cards, tab_slide5 = st.tabs(
-            [
-                f"🗺️ Görselli Rota & {'Araç' if is_driving else 'Yaya'} Haritası",
-                "📋 Slayt 5 Kompakt Çizelgesi & İndirme",
-            ]
-        )
+        tab_cards, tab_slide5 = st.tabs(["Rota & harita", "Çizelge & indir"])
         with tab_cards:
             _render_day_view(
                 day_plan=day_plans[0],
@@ -2272,12 +2336,11 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
                 venues_by_id=venues_by_id,
             )
         with tab_slide5:
-            st.subheader("📋 Slayt 5 Formatında Sade Zaman Çizelgesi")
             slide5_text = _format_slide5_schedule(day_plans[0], travel_mode=current_mode)
             st.code(slide5_text, language="text")
             day_tag = day_plans[0].get("day_of_week", "rota")
             st.download_button(
-                "📥 Gezi Planını Metin (.txt) Olarak İndir",
+                "📥 Gezi planını indir (.txt)",
                 data=slide5_text,
                 file_name=f"kocaeli_gezi_plani_{day_tag}.txt",
                 mime="text/plain",

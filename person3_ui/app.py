@@ -1152,6 +1152,40 @@ def _inject_global_styles() -> None:
             background: #ffffff !important;
             border-right: 1px solid {theme['border']} !important;
         }}
+        section[data-testid="stSidebar"] .block-container {{
+            padding-top: 1.4rem !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }}
+        .rk-side-brand {{
+            padding: 4px 0 14px 0;
+            margin-bottom: 8px;
+            border-bottom: 1px solid {theme['border']};
+        }}
+        .rk-side-title {{
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: {theme['text_primary']};
+            line-height: 1.15;
+        }}
+        .rk-side-sub {{
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            font-size: 11.5px;
+            color: {theme['text_muted']};
+            font-weight: 500;
+            margin-top: 3px;
+        }}
+        .rk-nav-section-label {{
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: {theme['text_muted']};
+            margin: 14px 0 6px 0;
+        }}
 
         /* Üst Menü */
         .rk-topbar {{
@@ -1380,26 +1414,276 @@ def _render_official_header() -> None:
     )
 
 
+def _render_app_sidebar() -> Tuple[bool, bool]:
+    theme = _get_active_theme()
+    st.session_state.setdefault("active_page", "planner")
+    active_page = st.session_state["active_page"]
+
+    with st.sidebar:
+        st.markdown(
+            f"""
+            <div class="rk-side-brand">
+              <div class="rk-side-title">ROTA KOCAELİ</div>
+              <div class="rk-side-sub">İzmit Akıllı Gezi Rehberi</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown('<div class="rk-nav-section-label">Sayfalar</div>', unsafe_allow_html=True)
+        nav_items = [
+            ("planner", "🧭 Rota Planlayıcı", "top_nav_planner"),
+            ("catalog", "🏛️ Mekan Kataloğu", "top_nav_catalog"),
+            ("virtual_museum", "🖼️ Sanal Müze & Tur", "top_nav_virtual_museum"),
+            ("account", "👤 Profil & Geziler", "top_nav_account"),
+            ("eval", "ℹ️ Hakkında & Testler", "top_nav_eval"),
+        ]
+        for page_key, label, btn_key in nav_items:
+            btn_type = "primary" if active_page == page_key else "secondary"
+            if st.button(label, key=btn_key, type=btn_type, width="stretch"):
+                st.session_state["active_page"] = page_key
+                st.rerun()
+
+        st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="rk-nav-section-label">Hesap</div>', unsafe_allow_html=True)
+        user = st.session_state.get("auth_user")
+        if user:
+            st.markdown(
+                f'<div style="font-size:13px;font-weight:700;color:{theme["text_primary"]};">{html.escape(user["full_name"])}</div>'
+                f'<div style="font-size:11.5px;color:{theme["text_muted"]};margin-bottom:8px;">{html.escape(user["email"])}</div>',
+                unsafe_allow_html=True,
+            )
+            c1, c2 = st.columns(2)
+            if c1.button("Gezilerim", key="sb_open_prof", width="stretch"):
+                st.session_state["active_page"] = "account"
+                st.rerun()
+            if c2.button("Çıkış", key="sb_logout", width="stretch"):
+                storage.logout_user()
+                st.session_state["auth_user"] = None
+                st.session_state["active_trip_id"] = None
+                st.rerun()
+        else:
+            st.markdown(
+                f'<div style="font-size:12px;color:{theme["text_muted"]};margin-bottom:8px;">Misafir Kullanıcı</div>',
+                unsafe_allow_html=True,
+            )
+            local_profs = storage.list_local_users()
+            if local_profs:
+                first_p = local_profs[0]
+                if st.button(
+                    f"Giriş: {first_p['full_name']}",
+                    key="sb_quick_login",
+                    type="primary",
+                    width="stretch",
+                ):
+                    ok, msg, logged_u = storage.quick_login_by_id(first_p["id"])
+                    if ok and logged_u:
+                        st.session_state["auth_user"] = logged_u
+                        st.toast(msg)
+                        st.rerun()
+            if st.button("Giriş Yap / Kayıt Ol", key="sb_go_acc", width="stretch"):
+                st.session_state["active_page"] = "account"
+                st.rerun()
+
+        st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="rk-nav-section-label">Görünüm Teması</div>', unsafe_allow_html=True)
+        theme_options = {
+            "rose_violet": "Gül & Mürdüm (Pembe/Mor)",
+            "terracotta_sand": "Terracotta & Kum",
+            "sage_slate": "Adaçayı & Zümrüt",
+        }
+        current_theme_key = st.session_state.get("ui_theme", "rose_violet")
+        theme_keys_list = list(theme_options.keys())
+        default_idx = (
+            theme_keys_list.index(current_theme_key)
+            if current_theme_key in theme_keys_list
+            else 0
+        )
+        selected_theme_key = st.selectbox(
+            "Tema",
+            options=theme_keys_list,
+            index=default_idx,
+            format_func=lambda k: theme_options[k],
+            key="theme_selector_sb",
+            label_visibility="collapsed",
+        )
+        if selected_theme_key != current_theme_key:
+            st.session_state["ui_theme"] = selected_theme_key
+            st.rerun()
+
+        st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
+        with st.expander("Gelişmiş Ayarlar", expanded=False):
+            default_mock = os.getenv("USE_MOCK_UI", "false").lower() == "true"
+            use_mock = st.toggle(
+                "Demo (mock) modu",
+                value=default_mock,
+                help="Diğer modüller olmadan contracts/mock_final_response.json ile test et.",
+                key="sb_toggle_use_mock",
+            )
+            use_street_geom = st.toggle(
+                "Gerçek sokak çizgileri",
+                value=True,
+                help="Açıkken harita çizgisi gerçek kaldırımları veya araç yollarını takip eder.",
+                key="sb_toggle_use_street",
+            )
+            daily_limit = int(os.getenv("DAILY_LIMIT_PER_SESSION", "15"))
+            st.caption(f"İstek kotası: {st.session_state['request_count']} / {daily_limit}")
+
+    return use_mock, use_street_geom
+
+
 def _render_top_navbar() -> str:
     st.session_state.setdefault("active_page", "planner")
-    active = st.session_state["active_page"]
-    user = st.session_state.get("auth_user")
-    account_label = "👤 Profilim" if user else "👤 Giriş / Profil"
-
-    nav_items = [
-        ("planner", "🧭 Rota Planla"),
-        ("catalog", "🏛️ Mekanlar"),
-        ("account", account_label),
-        ("eval", "ℹ️ Hakkında"),
-    ]
-    cols = st.columns([1, 1, 1, 1, 2.2])
-    for idx, (key, label) in enumerate(nav_items):
-        btn_type = "primary" if active == key else "secondary"
-        if cols[idx].button(label, key=f"top_nav_{key}", type=btn_type, width="stretch"):
-            st.session_state["active_page"] = key
-            st.rerun()
-    st.markdown('<div style="height: 6px;"></div>', unsafe_allow_html=True)
     return st.session_state["active_page"]
+
+
+def _render_virtual_museum_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) -> None:
+    theme = _get_active_theme()
+
+    st.markdown(
+        f"""
+        <div style="margin-bottom: 22px;">
+          <h2 class="rk-serif" style="margin: 0 0 6px 0; color: {theme['text_primary']}; font-size: 26px;">
+            🏛️ İzmit Sanal Müze & Kültür Keşfi
+          </h2>
+          <div style="font-size: 13.5px; color: {theme['text_muted']}; line-height: 1.5;">
+            İzmit'in zengin tarihini, Osmanlı saray mimarisini ve Cumhuriyet sanayi hafızasını 360° panoramik turlar ve küratör rehberi eşliğinde sanal olarak keşfedin.
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    museum_data = [
+        {
+            "id": "kasri_humayun",
+            "title": "Kasr-ı Hümayun Saray Müzesi (Av Köşkü)",
+            "subtitle": "İstanbul Dışındaki Tek Osmanlı Sarayı · 1861",
+            "desc": (
+                "Sultan Abdülaziz için ampir ve barok üslupta inşa edilen Kasr-ı Hümayun, "
+                "ihtişamlı tavan freskleri, mermer işçilikleri ve Dolmabahçe Sarayı esintisi taşıyan avizeleriyle "
+                "İzmit'in en görkemli tarihi anıtıdır. 1922'de Atatürk ile Fransız yazar Claude Farrère'in tarihi görüşmesine de ev sahipliği yapmıştır."
+            ),
+            "tour_url": "https://www.google.com/maps/@40.7601445,29.9248439,3a,75y,180h,90t/data=!3m8!1e1!3m6!1sAF1QipN3-Z5Cq6D_x-Kasr!2e10!3e11!6shttps:%2F%2Flh5.googleusercontent.com!7i13312!8i6656",
+            "gmaps_url": "https://www.google.com/maps/search/?api=1&query=40.7601,29.9248",
+            "highlights": [
+                ("🎨 Ampir Tavan Freskleri", "Fransız ressamların elinden çıkmış altın varaklı ve mitolojik tavan bezemeleri."),
+                ("🏛️ Mermer Giriş & Çeşme", "Tek parça mermer sütunlar ve Neoklasik cephe süslemeleri."),
+                ("📜 Atatürk & Basın Toplantısı", "16 Ocak 1923'te Cumhuriyet'in ilk basın toplantısının yapıldığı tarihi salon."),
+            ],
+            "default_img": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Hunting_Kiosk%2C_Izmit_01.jpg/1024px-Hunting_Kiosk%2C_Izmit_01.jpg",
+        },
+        {
+            "id": "arkeoloji_muzesi",
+            "title": "Kocaeli Arkeoloji ve Etnografya Müzesi",
+            "subtitle": "Roma, Bizans ve Osmanlı Mirası · Tarihi Tren Garı",
+            "desc": (
+                "Alman Mimar Otto Ritter tarafından tasarlanan 1910 yapımı tarihi demiryolu ambarlarında kurulan müzede, "
+                "antik Nikomedia (İzmit) krallığından günümüze ulaşan paha biçilemez Roma lahitleri, Herakles kabartmaları, "
+                "heykeller, sikkeler ve geleneksel İzmit etnografya koleksiyonu sergilenmektedir."
+            ),
+            "tour_url": "https://www.google.com/maps/@40.7618,29.9192,3a,75y,90t/data=!3m8!1e1!3m6!1sAF1QipM-Arkeoloji!2e10!3e11!6shttps:%2F%2Flh5.googleusercontent.com!7i13312!8i6656",
+            "gmaps_url": "https://www.google.com/maps/search/?api=1&query=40.7618,29.9192",
+            "highlights": [
+                ("🏺 Roma Dönemi Lahitleri", "Nikomedia nekropolünden çıkarılan girlandlı ve kabartmalı anıtsal lahitler."),
+                ("🦁 Herakles Kabartmaları", "Antik mitolojinin gücünü simgeleyen mermer frizler."),
+                ("🚂 Tarihi Tren Garı Mimarisi", "Taş ve ahşap karkas endüstriyel demiryolu mirası."),
+            ],
+            "default_img": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Kocaeli_Museum_Old_Station_Building_8245.jpg/1024px-Kocaeli_Museum_Old_Station_Building_8245.jpg",
+        },
+        {
+            "id": "seka_kagit_muzesi",
+            "title": "SEKA Kağıt Müzesi",
+            "subtitle": "Türkiye'nin Endüstriyel Mirası · 16 Sergi Salonu",
+            "desc": (
+                "1936 yılında Atatürk'ün direktifiyle temeli atılan Türkiye'nin ilk entegre kağıt fabrikası, "
+                "günümüzde Avrupa'nın en büyük endüstriyel miras müzelerinden biridir. 12 bin metrekare alanda "
+                "dev kağıt üretim makineleri, hamur kazanları ve matbaa tarihi ziyaretçilerini büyülemektedir."
+            ),
+            "tour_url": "https://www.google.com/maps/@40.7589,29.9095,3a,75y,90t/data=!3m8!1e1!3m6!1sAF1QipM-Seka!2e10!3e11!6shttps:%2F%2Flh5.googleusercontent.com!7i13312!8i6656",
+            "gmaps_url": "https://www.google.com/maps/search/?api=1&query=40.7589,29.9095",
+            "highlights": [
+                ("⚙️ 2 No'lu Kağıt Makinesi", "Cumhuriyet tarihinin ilk kağıtlarını üreten dev silindir ve kurutma hattı."),
+                ("🪵 Hamur Hazırlama Salonu", "Ağaç kütüğünden selüloz ve hamur elde eden mekanik değirmenler."),
+                ("📰 Tipografi ve Baskı Atölyesi", "Kurşun harflerle dizgi ve ilk yerli gazete matbaaları."),
+            ],
+            "default_img": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Seka_Ka%C4%9F%C4%B1t_M%C3%BCzesi_giri%C5%9F.jpg/1024px-Seka_Ka%C4%9F%C4%B1t_M%C3%BCzesi_giri%C5%9F.jpg",
+        },
+        {
+            "id": "gayret_gemi_muzesi",
+            "title": "TCG Gayret Gemi Müzesi (D-352)",
+            "subtitle": "Yüzen Savaş Efsanesi · İzmit Marina",
+            "desc": (
+                "1946 yapımı Amerikan Gearing sınıfı muhrip olan TCG Gayret, Türk Deniz Kuvvetleri bünyesinde "
+                "Kıbrıs Barış Harekatı ve tatbikatlarda kritik görevler üstlenmiştir. 1997'den bu yana Türkiye'nin ilk "
+                "müze gemisi olarak İzmit sahilinde ziyaretçilere denizaltı savunma ve muhrip yaşamını yaşatmaktadır."
+            ),
+            "tour_url": "https://www.google.com/maps/@40.7604,29.9142,3a,75y,90t/data=!3m8!1e1!3m6!1sAF1QipM-Gayret!2e10!3e11!6shttps:%2F%2Flh5.googleusercontent.com!7i13312!8i6656",
+            "gmaps_url": "https://www.google.com/maps/search/?api=1&query=40.7604,29.9142",
+            "highlights": [
+                ("⚓ Kaptan Köprüüstü", "Dümen, seyir aletleri ve telsiz harekat merkezi."),
+                ("🚀 Torpido ve ASROC Sistemleri", "Denizaltı savunma roketleri ve 127 mm baş topları."),
+                ("🛏️ Mürettebat Koğuşları", "Denizcilerin açık deniz yaşam koşullarını yansıtan yaşam alanları."),
+            ],
+            "default_img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/TCG_Gayret_%28D352%29_02.jpg/1024px-TCG_Gayret_%28D352%29_02.jpg",
+        },
+    ]
+
+    m_tabs = st.tabs([m["title"].split(" (")[0] for m in museum_data])
+
+    for idx, m in enumerate(museum_data):
+        with m_tabs[idx]:
+            v_obj = venues_by_id.get(m["id"])
+            img_src = getattr(v_obj, "image_url", None) or m["default_img"]
+
+            c_left, c_right = st.columns([1.2, 1.0], gap="large")
+            with c_left:
+                st.markdown(
+                    f"""
+                    <div style="background: #ffffff; border: 1px solid {theme['border']}; border-radius: 18px; padding: 8px; box-shadow: 0 4px 18px rgba(112,26,117,0.04); margin-bottom: 14px;">
+                      <img src="{img_src}" alt="{m['title']}" style="width: 100%; height: 320px; object-fit: cover; border-radius: 14px;" />
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                b1, b2, b3 = st.columns(3)
+                b1.link_button("🌐 360° Sanal Tur", m["tour_url"], use_container_width=True)
+                b2.link_button("📍 Google Harita", m["gmaps_url"], use_container_width=True)
+                if v_obj and v_obj.source_url:
+                    b3.link_button("📖 Wikipedia", v_obj.source_url, use_container_width=True)
+
+            with c_right:
+                st.markdown(
+                    f"""
+                    <div style="background: {theme['card_bg']}; border: 1px solid {theme['border']}; border-radius: 18px; padding: 20px; box-shadow: 0 4px 18px rgba(112,26,117,0.04);">
+                      <span class="rk-chip" style="margin-bottom: 8px;">{m['subtitle']}</span>
+                      <h3 class="rk-serif" style="margin: 6px 0 10px 0; color: {theme['text_primary']}; font-size: 21px;">{m['title']}</h3>
+                      <p style="font-size: 13px; color: #4B5563; line-height: 1.55; margin-bottom: 14px;">{m['desc']}</p>
+                      
+                      <div style="font-size: 11.5px; font-weight: 700; color: {theme['brand_primary']}; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                        Küratör Seçimi Koleksiyonlar
+                      </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                for h_title, h_desc in m["highlights"]:
+                    st.markdown(
+                        f"""
+                        <div style="background: {theme['bg']}; border: 1px solid {theme['border']}; border-radius: 10px; padding: 8px 12px; margin-bottom: 6px;">
+                          <div style="font-size: 12.5px; font-weight: 700; color: {theme['text_primary']};">{h_title}</div>
+                          <div style="font-size: 11.5px; color: {theme['text_muted']}; margin-top: 2px;">{h_desc}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                st.markdown("</div>", unsafe_allow_html=True)
+
+                st.write("")
+                short_name = m["title"].split(" (")[0]
+                if st.button(f"🧭 {short_name} Müzesini Gezi Planıma Ekle", key=f"add_museum_{m['id']}", type="primary", use_container_width=True):
+                    st.session_state["prompt_box"] = f"İzmit'te {short_name} noktasından başlayıp müzeleri ve tarihi konakları gezmek istiyorum."
+                    st.session_state["active_page"] = "planner"
+                    st.rerun()
 
 
 def _render_catalog_page(venues: List[Venue]) -> None:
@@ -2214,104 +2498,14 @@ def _render_day_view(
         )
 
 
-def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) -> None:
+def _render_planner_page(
+    venues: List[Venue],
+    venues_by_id: Dict[str, Venue],
+    use_mock: bool = False,
+    use_street_geom: bool = True,
+) -> None:
+    theme = _get_active_theme()
     daily_limit = int(os.getenv("DAILY_LIMIT_PER_SESSION", "15"))
-
-    with st.sidebar:
-        st.markdown("### 🎨 Renk Teması")
-        theme_options = {
-            "rose_violet": "🌸 Gül & Mürdüm (Pembe / Mor)",
-            "terracotta_sand": "🍂 Terracotta & Kum (Editoryal)",
-            "sage_slate": "🌿 Adaçayı & Zümrüt (Doğal)",
-        }
-        current_theme_key = st.session_state.get("ui_theme", "rose_violet")
-        theme_keys_list = list(theme_options.keys())
-        default_idx = (
-            theme_keys_list.index(current_theme_key)
-            if current_theme_key in theme_keys_list
-            else 0
-        )
-        selected_theme_key = st.selectbox(
-            "Görünüm Teması",
-            options=theme_keys_list,
-            index=default_idx,
-            format_func=lambda k: theme_options[k],
-            key="theme_selector_sb",
-            label_visibility="collapsed",
-        )
-        if selected_theme_key != current_theme_key:
-            st.session_state["ui_theme"] = selected_theme_key
-            st.rerun()
-
-        st.divider()
-        st.markdown("### 👤 Hesap")
-        sb_user = st.session_state.get("auth_user")
-        if sb_user:
-            sb_trips = storage.list_saved_trips(sb_user)
-            st.markdown(f"**{sb_user['full_name']}**  \n{sb_user['email']}")
-            sb_c1, sb_c2 = st.columns([1.4, 1.0])
-            if sb_c1.button(f"📂 Gezilerim ({len(sb_trips)})", key="sb_open_prof", width="stretch"):
-                st.session_state["active_page"] = "account"
-                st.rerun()
-            if sb_c2.button("Çıkış", key="sb_logout", width="stretch"):
-                storage.logout_user()
-                st.session_state["auth_user"] = None
-                st.session_state["active_trip_id"] = None
-                st.rerun()
-        else:
-            local_profs = storage.list_local_users()
-            if local_profs:
-                first_p = local_profs[0]
-                if st.button(
-                    f"⚡ {first_p['full_name']} olarak gir",
-                    key="sb_quick_login",
-                    type="primary",
-                    width="stretch",
-                ):
-                    ok, msg, logged_u = storage.quick_login_by_id(first_p["id"])
-                    if ok and logged_u:
-                        st.session_state["auth_user"] = logged_u
-                        st.toast(msg)
-                        st.rerun()
-            if st.button("🔑 Giriş yap / Hesap aç", key="sb_go_acc", width="stretch"):
-                st.session_state["active_page"] = "account"
-                st.rerun()
-
-        st.divider()
-        st.markdown("### 💡 Örnek istekler")
-        presets = {
-            "Klasik İzmit Kültür Turu (1 Gün)": DEFAULT_PROMPT,
-            "2 Günlük Otel Başlangıçlı Hafta Sonu": (
-                "Cumartesi ve Pazar 2 günlük gezi planı yap. Seka Park Otel'de kalacağım; müzeleri, tarihi konakları ve sahili gezmek istiyorum."
-            ),
-            "3 Günlük Kapsamlı Kocaeli Turu": (
-                "Cuma, Cumartesi ve Pazar 3 günlük gezi planı çıkar. Müzeler, Osmanlı konakları, camiler ve Sekapark sahili olsun."
-            ),
-            "Pazartesi (Kapalı Müze Testi)": (
-                "Pazartesi 09:30 - 16:30 arası İzmit Eski Tren Garı'ndan başlayıp müzeleri ve tarihi konakları gezmek istiyorum."
-            ),
-            "Sahil ve Balık Turu": (
-                "Salı 10:00 - 17:00 arası Seka Park ve sahil yürüyüşü yapıp öğlen balık yemek istiyorum."
-            ),
-        }
-        chosen_preset = st.selectbox("Hazır senaryo", list(presets.keys()), label_visibility="collapsed")
-        if st.button("Örneği kutuya aktar", width="stretch"):
-            st.session_state["prompt_box"] = presets[chosen_preset]
-
-        st.divider()
-        with st.expander("⚙️ Gelişmiş ayarlar"):
-            default_mock = os.getenv("USE_MOCK_UI", "false").lower() == "true"
-            use_mock = st.toggle(
-                "Demo (mock) modu",
-                value=default_mock,
-                help="Diğer modüller olmadan contracts/mock_final_response.json ile test et.",
-            )
-            use_street_geom = st.toggle(
-                "Haritada gerçek sokak çizgileri",
-                value=True,
-                help="Açıkken harita çizgisi gerçek kaldırımları veya araç yollarını takip eder.",
-            )
-            st.caption(f"Oturum istek kotası: {st.session_state['request_count']} / {daily_limit}")
 
     city_opts = get_city_options()
     venue_choices = city_opts["venues"]
@@ -2321,6 +2515,32 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
     hotels = city_opts.get("hotels", [])
     hotel_options = ["(Yok / Başlangıç Noktası Kullan)"] + [h["name"] for h in hotels]
     hotel_id_by_name = {h["name"]: h["id"] for h in hotels}
+
+    presets = {
+        "Klasik Kültür": DEFAULT_PROMPT,
+        "2 Günlük Hafta Sonu": (
+            "Cumartesi ve Pazar 2 günlük gezi planı yap. Seka Park Otel'de kalacağım; müzeleri, tarihi konakları ve sahili gezmek istiyorum."
+        ),
+        "3 Günlük Tur": (
+            "Cuma, Cumartesi ve Pazar 3 günlük gezi planı çıkar. Müzeler, Osmanlı konakları, camiler ve Sekapark sahili olsun."
+        ),
+        "Pazartesi Açık Yerler": (
+            "Pazartesi 09:30 - 16:30 arası İzmit Eski Tren Garı'ndan başlayıp müzeleri ve tarihi konakları gezmek istiyorum."
+        ),
+        "Sahil & Balık": (
+            "Salı 10:00 - 17:00 arası Seka Park ve sahil yürüyüşü yapıp öğlen balık yemek istiyorum."
+        ),
+    }
+
+    st.markdown(
+        f'<div style="font-size: 11.5px; font-weight: 700; color: {theme["text_muted"]}; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;">Hızlı Örnek İstekler</div>',
+        unsafe_allow_html=True,
+    )
+    p_cols = st.columns(len(presets))
+    for i, (p_title, p_prompt) in enumerate(presets.items()):
+        if p_cols[i].button(p_title, key=f"quick_preset_{i}", width="stretch"):
+            st.session_state["prompt_box"] = p_prompt
+            st.rerun()
 
     # --- Arama kartı ---
     with st.form("route_form", border=True):
@@ -2673,17 +2893,20 @@ def main() -> None:
     venues, venues_by_id, _ = load_city_data()
 
     _inject_global_styles()
+    use_mock, use_street_geom = _render_app_sidebar()
     _render_official_header()
-    page = _render_top_navbar()
+    page = st.session_state.get("active_page", "planner")
 
     if page == "catalog":
         _render_catalog_page(venues)
+    elif page == "virtual_museum":
+        _render_virtual_museum_page(venues, venues_by_id)
     elif page == "account":
         _render_account_page(venues)
     elif page == "eval":
         _render_eval_report_page()
     else:
-        _render_planner_page(venues, venues_by_id)
+        _render_planner_page(venues, venues_by_id, use_mock=use_mock, use_street_geom=use_street_geom)
 
 
 if __name__ == "__main__":

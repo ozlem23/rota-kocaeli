@@ -148,6 +148,62 @@ DAY_COLORS = [
     {"rgb": [225, 29, 72, 235], "hex": "#e11d48", "name": "Bordo"},
 ]
 
+UI_THEMES: Dict[str, Dict[str, Any]] = {
+    "rose_violet": {
+        "name": "🌸 Gül & Mürdüm (Pembe / Mor)",
+        "bg": "#FAF6F8",
+        "card_bg": "#FFFFFF",
+        "border": "#F3E8EE",
+        "text_primary": "#1E1B26",
+        "text_muted": "#706878",
+        "brand_primary": "#86198F",
+        "brand_gradient": "linear-gradient(135deg, #7E22CE 0%, #BE185D 100%)",
+        "brand_hover": "#701A75",
+        "pill_bg": "#FDF2F8",
+        "pill_border": "#FCE7F3",
+        "pill_text": "#9D174D",
+        "dot_accent": "#BE185D",
+        "logo_fill": "#86198F",
+    },
+    "terracotta_sand": {
+        "name": "🍂 Terracotta & Kum (Editoryal)",
+        "bg": "#FAF7F2",
+        "card_bg": "#FFFFFF",
+        "border": "#EFEBE4",
+        "text_primary": "#262320",
+        "text_muted": "#78716C",
+        "brand_primary": "#8A482A",
+        "brand_gradient": "linear-gradient(135deg, #8A482A 0%, #B45309 100%)",
+        "brand_hover": "#6E361D",
+        "pill_bg": "#FDF6EE",
+        "pill_border": "#F5EBE1",
+        "pill_text": "#8A482A",
+        "dot_accent": "#8A482A",
+        "logo_fill": "#8A482A",
+    },
+    "sage_slate": {
+        "name": "🌿 Adaçayı & Zümrüt (Doğal)",
+        "bg": "#F5F7F6",
+        "card_bg": "#FFFFFF",
+        "border": "#E2EBE6",
+        "text_primary": "#1C2421",
+        "text_muted": "#5C6B66",
+        "brand_primary": "#0F766E",
+        "brand_gradient": "linear-gradient(135deg, #0F766E 0%, #0369A1 100%)",
+        "brand_hover": "#115E59",
+        "pill_bg": "#ECFDF5",
+        "pill_border": "#D1FAE5",
+        "pill_text": "#065F46",
+        "dot_accent": "#0F766E",
+        "logo_fill": "#0F766E",
+    },
+}
+
+
+def _get_active_theme() -> Dict[str, Any]:
+    key = st.session_state.get("ui_theme", "rose_violet")
+    return UI_THEMES.get(key, UI_THEMES["rose_violet"])
+
 
 def _get_theme(category: str) -> Dict[str, Any]:
     return CATEGORY_THEMES.get(category, DEFAULT_THEME)
@@ -963,127 +1019,329 @@ def _format_slide5_schedule(plan: Dict[str, Any], travel_mode: str = "walking") 
 
 
 def _inject_global_styles() -> None:
+    theme = _get_active_theme()
     st.markdown(
-        """
+        f"""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-        html, body, [class*="css"], .stMarkdown, button, input, textarea, select {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        }
-        .stApp { background: #f6f7f9 !important; }
-        .block-container { padding-top: 1.4rem !important; padding-bottom: 3rem !important; max-width: 1380px !important; }
-        .stAppDeployButton, [data-testid="stDecoration"] { display: none !important; }
-        h1, h2, h3, h4 { letter-spacing: -0.3px; color: #111827; }
+        html, body, [class*="css"], .stMarkdown, button, input, textarea, select {{
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        }}
+        .stApp {{
+            background: {theme['bg']} !important;
+        }}
+        .block-container {{
+            padding-top: 1.4rem !important;
+            padding-bottom: 3rem !important;
+            max-width: 1400px !important;
+        }}
+        .stAppDeployButton, [data-testid="stDecoration"] {{ display: none !important; }}
 
-        /* Kartlar */
-        div[data-testid="stVerticalBlockBorderWrapper"] {
-            background: #ffffff;
-            border: 1px solid #eceef1 !important;
-            border-radius: 16px !important;
-            box-shadow: 0 1px 3px rgba(17, 24, 39, 0.04);
-        }
+        h1, h2, h3, h4, .rk-serif {{
+            font-family: 'Playfair Display', Georgia, serif !important;
+            letter-spacing: -0.3px !important;
+            color: {theme['text_primary']} !important;
+        }}
+
+        /* Kartlar & Konteynerlar */
+        div[data-testid="stVerticalBlockBorderWrapper"] {{
+            background: {theme['card_bg']} !important;
+            border: 1px solid {theme['border']} !important;
+            border-radius: 18px !important;
+            box-shadow: 0 4px 20px -2px rgba(112, 26, 117, 0.04) !important;
+            padding: 4px !important;
+        }}
 
         /* Butonlar */
-        .stButton button, .stFormSubmitButton button, .stLinkButton a, .stDownloadButton button {
-            border-radius: 10px !important;
+        .stButton button, .stFormSubmitButton button, .stLinkButton a, .stDownloadButton button {{
+            border-radius: 12px !important;
             font-weight: 600 !important;
             font-size: 13.5px !important;
-            transition: all .15s ease !important;
-        }
-        .stButton button[kind="primary"], .stFormSubmitButton button[kind="primaryFormSubmit"] {
-            background: #0f766e !important;
-            border: 1px solid #0f766e !important;
+            transition: all .18s ease-in-out !important;
+        }}
+        .stButton button[kind="primary"], .stFormSubmitButton button[kind="primaryFormSubmit"] {{
+            background: {theme['brand_gradient']} !important;
+            border: none !important;
             color: #ffffff !important;
-        }
-        .stButton button[kind="primary"]:hover, .stFormSubmitButton button[kind="primaryFormSubmit"]:hover {
-            background: #115e59 !important;
-            border-color: #115e59 !important;
-        }
-        .stButton button[kind="secondary"] {
+            box-shadow: 0 4px 14px rgba(134, 25, 143, 0.22) !important;
+        }}
+        .stButton button[kind="primary"]:hover, .stFormSubmitButton button[kind="primaryFormSubmit"]:hover {{
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 20px rgba(134, 25, 143, 0.32) !important;
+        }}
+        .stButton button[kind="secondary"] {{
             background: #ffffff !important;
-            border: 1px solid #e5e7eb !important;
-            color: #374151 !important;
-        }
-        .stButton button[kind="secondary"]:hover { border-color: #0f766e !important; color: #0f766e !important; }
+            border: 1px solid {theme['border']} !important;
+            color: {theme['text_primary']} !important;
+        }}
+        .stButton button[kind="secondary"]:hover {{
+            border-color: {theme['brand_primary']} !important;
+            color: {theme['brand_primary']} !important;
+            background: {theme['pill_bg']} !important;
+        }}
 
         /* Metrikler */
-        [data-testid="stMetric"] {
-            background: #ffffff;
-            border: 1px solid #eceef1;
-            border-radius: 14px;
-            padding: 12px 16px;
-        }
-        [data-testid="stMetricLabel"] p { font-size: 12px !important; color: #6b7280 !important; font-weight: 600 !important; }
-        [data-testid="stMetricValue"] { font-size: 22px !important; font-weight: 700 !important; color: #111827 !important; }
+        [data-testid="stMetric"] {{
+            background: #ffffff !important;
+            border: 1px solid {theme['border']} !important;
+            border-radius: 16px !important;
+            padding: 14px 18px !important;
+            box-shadow: 0 2px 8px rgba(112, 26, 117, 0.03) !important;
+        }}
+        [data-testid="stMetricLabel"] p {{
+            font-size: 11.5px !important;
+            color: {theme['text_muted']} !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.6px !important;
+        }}
+        [data-testid="stMetricValue"] {{
+            font-family: 'Playfair Display', Georgia, serif !important;
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            color: {theme['text_primary']} !important;
+        }}
 
         /* Sekmeler */
-        .stTabs [data-baseweb="tab-list"] { gap: 4px; border-bottom: 1px solid #e5e7eb; }
-        .stTabs [data-baseweb="tab"] {
-            height: 40px; padding: 0 14px; font-weight: 600; font-size: 13.5px; color: #6b7280; background: transparent;
-        }
-        .stTabs [aria-selected="true"] { color: #0f766e !important; }
-        .stTabs [data-baseweb="tab-highlight"] { background-color: #0f766e !important; }
+        .stTabs [data-baseweb="tab-list"] {{
+            gap: 6px !important;
+            border-bottom: 1px solid {theme['border']} !important;
+            padding-bottom: 4px !important;
+        }}
+        .stTabs [data-baseweb="tab"] {{
+            height: 42px !important;
+            padding: 0 16px !important;
+            font-weight: 600 !important;
+            font-size: 13.5px !important;
+            color: {theme['text_muted']} !important;
+            background: transparent !important;
+            border-radius: 10px !important;
+        }}
+        .stTabs [aria-selected="true"] {{
+            color: {theme['brand_primary']} !important;
+            background: {theme['pill_bg']} !important;
+        }}
+        .stTabs [data-baseweb="tab-highlight"] {{
+            background-color: {theme['brand_primary']} !important;
+        }}
 
         /* Girdi alanları */
-        .stTextInput input, .stTextArea textarea, .stNumberInput input { border-radius: 10px !important; }
-        [data-testid="stExpander"] details { border-radius: 12px !important; border: 1px solid #eceef1 !important; background: #ffffff; }
-        [data-testid="stExpander"] summary p { font-weight: 600; font-size: 13.5px; color: #374151; }
+        .stTextInput input, .stTextArea textarea, .stNumberInput input {{
+            border-radius: 12px !important;
+            border: 1px solid {theme['border']} !important;
+            font-size: 13.5px !important;
+        }}
+        .stTextInput input:focus, .stTextArea textarea:focus {{
+            border-color: {theme['brand_primary']} !important;
+            box-shadow: 0 0 0 2px rgba(134, 25, 143, 0.15) !important;
+        }}
+        [data-testid="stExpander"] details {{
+            border-radius: 14px !important;
+            border: 1px solid {theme['border']} !important;
+            background: #ffffff !important;
+        }}
+        [data-testid="stExpander"] summary p {{
+            font-weight: 600 !important;
+            font-size: 13.5px !important;
+            color: {theme['text_primary']} !important;
+        }}
 
         /* Kenar çubuğu */
-        section[data-testid="stSidebar"] { background: #ffffff !important; border-right: 1px solid #eceef1; }
+        section[data-testid="stSidebar"] {{
+            background: #ffffff !important;
+            border-right: 1px solid {theme['border']} !important;
+        }}
 
-        /* Üst menü */
-        .rk-topbar {
-            display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-            margin-bottom: 6px;
-        }
-        .rk-brand { display: flex; align-items: center; gap: 12px; }
-        .rk-brand-title { font-size: 20px; font-weight: 800; color: #111827; letter-spacing: -0.4px; line-height: 1.1; }
-        .rk-brand-sub { font-size: 12.5px; color: #6b7280; margin-top: 2px; }
-        .rk-user-chip {
-            display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600;
-            background: #ffffff; border: 1px solid #e5e7eb; border-radius: 999px; padding: 5px 12px; color: #374151;
-        }
-        .rk-user-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        /* Üst Menü */
+        .rk-topbar {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 12px 18px;
+            background: #ffffff;
+            border: 1px solid {theme['border']};
+            border-radius: 18px;
+            box-shadow: 0 4px 20px -2px rgba(112, 26, 117, 0.04);
+            margin-bottom: 12px;
+        }}
+        .rk-brand {{ display: flex; align-items: center; gap: 14px; }}
+        .rk-brand-title {{
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: {theme['text_primary']};
+            letter-spacing: -0.4px;
+            line-height: 1.1;
+        }}
+        .rk-brand-sub {{ font-size: 12.5px; color: {theme['text_muted']}; margin-top: 2px; }}
+        .rk-user-chip {{
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            background: {theme['pill_bg']};
+            border: 1px solid {theme['pill_border']};
+            border-radius: 999px;
+            padding: 6px 14px;
+            color: {theme['pill_text']};
+        }}
+        .rk-user-dot {{ width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: {theme['dot_accent']}; }}
 
-        /* Zaman çizelgesi */
-        .rk-section-title { font-size: 16px; font-weight: 700; color: #111827; margin: 4px 0 10px 0; }
-        .rk-stop { display: flex; gap: 12px; align-items: flex-start; }
-        .rk-time { width: 50px; flex-shrink: 0; text-align: right; padding-top: 4px; }
-        .rk-time b { display: block; font-size: 14px; color: #111827; }
-        .rk-time span { font-size: 11.5px; color: #9ca3af; }
-        .rk-dot {
-            width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; color: #fff; font-weight: 700; font-size: 12.5px;
-            display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px #f6f7f9;
-        }
-        .rk-card {
-            flex: 1; min-width: 0; background: #ffffff; border: 1px solid #eceef1; border-radius: 14px;
-            padding: 12px; display: flex; gap: 12px;
-        }
-        .rk-card.done { background: #f0fdf4; border-color: #bbf7d0; }
-        .rk-card img, .rk-card .rk-noimg {
-            width: 78px; height: 78px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #f3f4f6;
-        }
-        .rk-card .rk-noimg { display: flex; align-items: center; justify-content: center; font-size: 22px; }
-        .rk-name { font-size: 15px; font-weight: 700; color: #111827; line-height: 1.3; }
-        .rk-chip {
-            display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-top: 4px;
-        }
-        .rk-meta { font-size: 12px; color: #6b7280; margin-top: 6px; }
-        .rk-meta .warn { color: #b45309; font-weight: 600; }
-        .rk-desc {
-            font-size: 12.5px; color: #4b5563; margin-top: 4px; line-height: 1.45;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-        }
-        .rk-links { margin-top: 6px; font-size: 12px; }
-        .rk-links a { color: #0f766e; text-decoration: none; font-weight: 600; margin-right: 12px; }
-        .rk-leg {
-            margin: -6px 0 -6px 76px; padding: 6px 0 6px 18px; border-left: 2px dashed #d1d5db;
-            font-size: 12px; color: #6b7280;
-        }
-        .rk-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: #6b7280; margin-top: 6px; }
-        .rk-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; }
+        /* Zaman Çizelgesi Durak Kartları */
+        .rk-section-title {{
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: {theme['text_primary']};
+            margin: 4px 0 12px 0;
+            letter-spacing: -0.3px;
+        }}
+        .rk-stop {{
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }}
+        .rk-time {{
+            width: 56px;
+            flex-shrink: 0;
+            text-align: right;
+            padding-top: 5px;
+        }}
+        .rk-time b {{
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: {theme['text_primary']};
+        }}
+        .rk-time span {{
+            font-size: 11px;
+            color: {theme['text_muted']};
+        }}
+        .rk-dot {{
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: {theme['brand_gradient']};
+            box-shadow: 0 2px 8px rgba(134, 25, 143, 0.28);
+        }}
+        .rk-card {{
+            flex: 1;
+            min-width: 0;
+            background: #ffffff;
+            border: 1px solid {theme['border']};
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            gap: 14px;
+            box-shadow: 0 2px 10px rgba(112, 26, 117, 0.04);
+            transition: all .15s ease;
+        }}
+        .rk-card:hover {{
+            box-shadow: 0 6px 18px rgba(112, 26, 117, 0.08);
+            border-color: {theme['pill_border']};
+        }}
+        .rk-card.done {{
+            background: #F0FDF4;
+            border-color: #BBF7D0;
+        }}
+        .rk-card img, .rk-card .rk-noimg {{
+            width: 96px;
+            height: 86px;
+            border-radius: 12px;
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }}
+        .rk-card .rk-noimg {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: {theme['pill_bg']};
+        }}
+        .rk-name {{
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: {theme['text_primary']};
+            line-height: 1.3;
+        }}
+        .rk-chip {{
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 9px;
+            border-radius: 999px;
+            margin-top: 4px;
+            background: {theme['pill_bg']};
+            color: {theme['pill_text']};
+            border: 1px solid {theme['pill_border']};
+        }}
+        .rk-meta {{
+            font-size: 12px;
+            color: {theme['text_muted']};
+            margin-top: 6px;
+        }}
+        .rk-meta .warn {{
+            color: #B45309;
+            font-weight: 600;
+        }}
+        .rk-desc {{
+            font-size: 12.5px;
+            color: #4B5563;
+            margin-top: 5px;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }}
+        .rk-links {{
+            margin-top: 7px;
+            font-size: 12px;
+            display: flex;
+            gap: 12px;
+        }}
+        .rk-links a {{
+            color: {theme['brand_primary']};
+            text-decoration: none;
+            font-weight: 600;
+        }}
+        .rk-links a:hover {{ text-decoration: underline; }}
+        .rk-leg {{
+            margin: -6px 0 -6px 82px;
+            padding: 8px 0 8px 20px;
+            border-left: 2px dashed {theme['pill_border']};
+            font-size: 12px;
+            color: {theme['text_muted']};
+            font-weight: 600;
+        }}
+        .rk-legend {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 11.5px;
+            color: {theme['text_muted']};
+            margin-top: 8px;
+        }}
+        .rk-legend i {{
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -1091,10 +1349,11 @@ def _inject_global_styles() -> None:
 
 
 def _render_official_header() -> None:
+    theme = _get_active_theme()
     user = st.session_state.get("auth_user")
     if user:
         user_chip = (
-            f'<span class="rk-user-chip"><span class="rk-user-dot" style="background:#10b981;"></span>'
+            f'<span class="rk-user-chip"><span class="rk-user-dot"></span>'
             f'{html.escape(user["full_name"])}</span>'
         )
     else:
@@ -1102,18 +1361,18 @@ def _render_official_header() -> None:
             '<span class="rk-user-chip"><span class="rk-user-dot" style="background:#9ca3af;"></span>'
             'Misafir</span>'
         )
-    svg_logo = (
-        '<svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">'
-        '<rect width="48" height="48" rx="12" fill="#0F766E"/>'
-        '<path d="M24 11c-5.5 0-10 4.3-10 9.7C14 28 24 37 24 37s10-9 10-16.3C34 15.3 29.5 11 24 11z" fill="#FFFFFF"/>'
-        '<circle cx="24" cy="20.5" r="3.6" fill="#0F766E"/>'
-        '</svg>'
-    )
+    svg_logo = f"""
+    <svg width="42" height="42" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="14" fill="{theme['logo_fill']}"/>
+      <path d="M24 10c-5.5 0-10 4.3-10 9.7C14 27.5 24 38 24 38s10-10.5 10-18.3C34 14.3 29.5 10 24 10z" fill="#FFFFFF"/>
+      <circle cx="24" cy="19.7" r="4.2" fill="{theme['logo_fill']}"/>
+    </svg>
+    """
     st.markdown(
         '<div class="rk-topbar">'
         f'<div class="rk-brand">{svg_logo}<div>'
-        '<div class="rk-brand-title">Rota Kocaeli</div>'
-        '<div class="rk-brand-sub">İzmit için yürüyüş odaklı günlük gezi planlayıcı</div>'
+        f'<div class="rk-brand-title">Rota Kocaeli</div>'
+        '<div class="rk-brand-sub">İzmit için yürüyüş ve araç rotası planlayıcı · Editoryal Gezi Rehberi</div>'
         '</div></div>'
         f'{user_chip}'
         '</div>',
@@ -1144,7 +1403,8 @@ def _render_top_navbar() -> str:
 
 
 def _render_catalog_page(venues: List[Venue]) -> None:
-    st.subheader("🏛️ Kocaeli (İzmit) Doğrulanmış Mekan, Konaklama ve Restoran Kataloğu")
+    theme = _get_active_theme()
+    st.markdown('<h2 class="rk-serif" style="margin-bottom:4px;">🏛️ Doğrulanmış Mekan ve Lezzet Kataloğu</h2>', unsafe_allow_html=True)
     st.caption(
         "Tüm koordinatlar OpenStreetMap verilerinden, fotoğraflar ise Wikimedia Commons gerçek mekan görsellerinden doğrulandı. Her kartta doğrudan Google Haritalar ve Wikipedia bağlantısı bulunur."
     )
@@ -1185,30 +1445,31 @@ def _render_catalog_page(venues: List[Venue]) -> None:
 
     grid_cols = st.columns(2)
     for idx, v in enumerate(filtered):
-        theme = _get_theme(v.category)
+        cat_theme = _get_theme(v.category)
         with grid_cols[idx % 2]:
             img_html = ""
             if getattr(v, "image_url", None):
-                img_html = f'<img src="{v.image_url}" style="width: 100%; height: 185px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0;" alt="{v.name}" />'
+                img_html = f'<img src="{v.image_url}" style="width: 100%; height: 190px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; border: 1px solid {theme["border"]};" alt="{v.name}" />'
             price_info = f" | <b>Fiyat:</b> {v.price_range}" if v.price_range else ""
             open_note = v.opening_hours_note or "Açılış saati bilinmiyor"
             gmaps_pin = _google_maps_pin_url(v.lat, v.lon)
             card_html = (
-                f'<div style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 5px solid {theme["border"]}; '
-                f'padding: 16px; border-radius: 14px; margin-bottom: 16px; box-shadow: 0 4px 16px -2px rgba(15,23,42,0.05);">'
+                f'<div style="background: {theme["card_bg"]}; border: 1px solid {theme["border"]}; '
+                f'border-top: 4px solid {theme["brand_primary"]}; '
+                f'padding: 16px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 18px -2px rgba(112,26,117,0.04);">'
                 f'{img_html}'
                 f'<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">'
-                f'<h4 style="margin: 0; color: #0f172a; font-size: 16px; font-weight: 800;">{v.name}</h4>'
-                f'<span style="background: {theme["bg"]}; color: {theme["text"]}; border: 1px solid {theme["border"]}33; '
-                f'font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 9999px; white-space: nowrap;">{theme["badge"]}</span>'
+                f'<h4 class="rk-serif" style="margin: 0; color: {theme["text_primary"]}; font-size: 17px; font-weight: 700;">{v.name}</h4>'
+                f'<span style="background: {theme["pill_bg"]}; color: {theme["pill_text"]}; border: 1px solid {theme["pill_border"]}; '
+                f'font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 9999px; white-space: nowrap;">{cat_theme["badge"]}</span>'
                 f'</div>'
-                f'<p style="font-size: 12.5px; color: #475569; margin: 8px 0; line-height: 1.45;">{v.description_short}</p>'
-                f'<div style="font-size: 12px; color: #64748b; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid #f1f5f9;">'
+                f'<p style="font-size: 12.5px; color: #4B5563; margin: 8px 0; line-height: 1.45;">{v.description_short}</p>'
+                f'<div style="font-size: 12px; color: {theme["text_muted"]}; background: {theme["bg"]}; padding: 8px 12px; border-radius: 10px; border: 1px solid {theme["border"]};">'
                 f'⏱️ <b>Varsayılan Kalış:</b> {v.default_stay_min} dk &nbsp;•&nbsp; 🕒 <b>Açılış:</b> {open_note}{price_info}'
                 f'</div>'
-                f'<div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">'
-                f'<a href="{gmaps_pin}" target="_blank" style="font-size: 11.5px; color: #0284c7; background: #f0f9ff; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-weight: 700;">📍 Google Haritalar & Fotoğraflar →</a>'
-                f'<a href="{v.source_url}" target="_blank" style="font-size: 11.5px; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-weight: 600;">📖 {v.source_name} Kaynağı →</a>'
+                f'<div style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">'
+                f'<a href="{gmaps_pin}" target="_blank" style="font-size: 11.5px; color: {theme["brand_primary"]}; background: {theme["pill_bg"]}; padding: 5px 12px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid {theme["pill_border"]};">📍 Google Haritalar →</a>'
+                f'<a href="{v.source_url}" target="_blank" style="font-size: 11.5px; color: {theme["text_muted"]}; background: #FFFFFF; border: 1px solid {theme["border"]}; padding: 5px 12px; border-radius: 8px; text-decoration: none; font-weight: 600;">📖 {v.source_name} →</a>'
                 f'</div>'
                 f'</div>'
             )
@@ -1574,7 +1835,8 @@ def _stop_card_html(
     multi_day: bool,
 ) -> str:
     theme = _get_theme(s.get("category", ""))
-    dot_color = "#10b981" if is_done else theme["border"]
+    active_theme = _get_active_theme()
+    dot_style = "background:#10b981;" if is_done else f"background:{active_theme['brand_gradient']};"
     venue_obj = venues_by_id.get(s["venue_id"])
     img_url = getattr(venue_obj, "image_url", None) if venue_obj else None
     img_block = (
@@ -1611,17 +1873,17 @@ def _stop_card_html(
     return (
         '<div class="rk-stop">'
         f'<div class="rk-time">{time_block}</div>'
-        f'<div class="rk-dot" style="background:{dot_color};">{dot_label}</div>'
+        f'<div class="rk-dot" style="{dot_style}">{dot_label}</div>'
         f'<div class="rk-card{" done" if is_done else ""}">'
         f"{img_block}"
         '<div style="flex:1;min-width:0;">'
         f'<div class="rk-name">{html.escape(s["name"])}</div>'
-        f'<span class="rk-chip" style="background:{theme["bg"]};color:{theme["text"]};">{theme["badge"]}</span>'
+        f'<span class="rk-chip" style="background:{theme["bg"]};color:{theme["text"]};border:1px solid {theme["border"]}44;">{theme["badge"]}</span>'
         + (f'<div class="rk-meta">{meta_html}</div>' if meta_html else "")
         + (f'<div class="rk-desc">{html.escape(expl_text)}</div>' if expl_text else "")
         + '<div class="rk-links">'
-        f'<a href="{gmaps_pin}" target="_blank">Haritada aç ↗</a>'
-        f'<a href="{src_url}" target="_blank">Kaynak ↗</a>'
+        f'<a href="{gmaps_pin}" target="_blank" style="color:{active_theme["brand_primary"]};">Haritada aç ↗</a>'
+        f'<a href="{src_url}" target="_blank" style="color:{active_theme["text_muted"]};">Kaynak ↗</a>'
         "</div>"
         "</div></div></div>"
     )
@@ -1956,6 +2218,32 @@ def _render_planner_page(venues: List[Venue], venues_by_id: Dict[str, Venue]) ->
     daily_limit = int(os.getenv("DAILY_LIMIT_PER_SESSION", "15"))
 
     with st.sidebar:
+        st.markdown("### 🎨 Renk Teması")
+        theme_options = {
+            "rose_violet": "🌸 Gül & Mürdüm (Pembe / Mor)",
+            "terracotta_sand": "🍂 Terracotta & Kum (Editoryal)",
+            "sage_slate": "🌿 Adaçayı & Zümrüt (Doğal)",
+        }
+        current_theme_key = st.session_state.get("ui_theme", "rose_violet")
+        theme_keys_list = list(theme_options.keys())
+        default_idx = (
+            theme_keys_list.index(current_theme_key)
+            if current_theme_key in theme_keys_list
+            else 0
+        )
+        selected_theme_key = st.selectbox(
+            "Görünüm Teması",
+            options=theme_keys_list,
+            index=default_idx,
+            format_func=lambda k: theme_options[k],
+            key="theme_selector_sb",
+            label_visibility="collapsed",
+        )
+        if selected_theme_key != current_theme_key:
+            st.session_state["ui_theme"] = selected_theme_key
+            st.rerun()
+
+        st.divider()
         st.markdown("### 👤 Hesap")
         sb_user = st.session_state.get("auth_user")
         if sb_user:
@@ -2366,6 +2654,7 @@ def main() -> None:
     st.session_state.setdefault("active_trip_id", None)
     st.session_state.setdefault("active_page", "planner")
     st.session_state.setdefault("travel_mode", "walking")
+    st.session_state.setdefault("ui_theme", "rose_violet")
 
     # Sayfa ilk açıldığında veya yenilendiğinde harita ve rotanın ekranda kalmasını sağla
     if not st.session_state.get("day_plans"):

@@ -1,66 +1,85 @@
-# Rota Planlayıcı — 3 Kişilik Hızlı Geliştirme İskeleti
+# 🗺️ Rota Kocaeli — Akıllı Şehir ve Gezi Planlayıcısı
 
-Zaman kısıtlı hackathon/atölye ortamında **kod paylaşımını ve Git çakışmalarını sıfıra indirmek** için tasarlanmış 3 katmanlı proje yapısıdır.
+**Rota Kocaeli**, Kocaeli (İzmit) genelinde tarihi mekanlar, müzeler, parklar ve yerel lezzet durakları için **gerçek sokak mesafelerine dayalı, kişiselleştirilebilir günlük gezi rotaları** oluşturan bir web uygulamasıdır.
 
-## Klasör Sahipliği
+Serbest metinle yazdığınız bir gezi isteğini ("Cumartesi sabah Gar'dan başlayıp müzeleri gezelim, öğlen köfte yiyelim") saniyeler içinde süreleri, durak sıralaması ve haritasıyla eksiksiz bir seyahat planına dönüştürür.
 
-| Klasör | Sahibi | Görevi |
-| :--- | :--- | :--- |
-| `contracts/` | Ortak (Salt Okunur) | Pydantic veri modelleri ve sahte (mock) JSON sözleşmeleri |
-| `data/` | Kişi 1 (Üretir) / Kişi 2 (Okur) | Doğrulanmış `venues.json`, yaya (`walking_matrix.json`, `walking_paths.json`) ve araç (`driving_matrix.json`, `driving_paths.json`) ağ verileri |
-| `person1_data_ai/` | **Kişi 1** | OSM/Wikimedia şehir verisi indirici, LLM ayrıştırıcı/anlatıcı, 20 istek sınaması |
-| `person2_engine/` | **Kişi 2** | Yaya & araç optimizasyonu, çok günlük konaklama döngüsü, gün ortası yeniden planlama ve `service.py` |
-| `person3_ui/` | **Kişi 3** | Kurumsal Streamlit arayüzü, PyDeck **🚶 Yürüyüş / 🚗 Araba** haritası ve hesap/kayıtlı geziler (`storage.py`) |
+---
 
-## Hızlı Kurulum (Herkes Kendi Bilgisayarında)
+## ✨ Öne Çıkan Özellikler
 
+* **🧭 Gerçekçi Rota Optimizasyonu:** Ziyaret sırası, yürüme/araç süreleri ve mesafeler OpenStreetMap ağ verileri üzerinden deterministik algoritmalarla hesaplanır; tahmini veya uydurma süreler üretilmez.
+* **🕒 Açılış Saati ve Gün Denetimi:** Mekanların açık ve kapalı olduğu saatler otomatik kontrol edilir. Örneğin Pazartesi günleri kapalı olan müzeler plana alınmaz ve kullanıcıya açıkça bildirilir.
+* **🍽️ Entegre Öğle Yemeği:** Günün akışına ve saatine göre rotaya en uygun İzmit lezzet durakları (tarihi köfteciler, balık restoranları, simit ve tatlı durakları) plana dahil edilir.
+* **🏨 Çok Günlük Seyahat Planlama:** 1, 2 veya 3 günlük gezilerde konaklama noktanızı (otel vb.) baz alarak her gün için dengeli başlangıç ve dönüş rotaları kurgular.
+* **🏛️ Sanal Müze & Kültür Keşfi:** Kasr-ı Hümayun (Av Köşkü), Kocaeli Arkeoloji Müzesi, SEKA Kağıt Müzesi ve TCG Gayret Gemi Müzesi için 360° sanal turlar, tarihi koleksiyon bilgileri ve tek tıkla rotaya ekleme desteği sunar.
+* **🗺️ İnteraktif Harita:** PyDeck altyapısıyla yaya kaldırımlarını ve araç yollarını gösteren harita, durak sıralaması ve gün bazlı renk kodlaması içerir.
+* **✏️ Canlı Düzenleme ve İlerleme Takibi:** Durakların kalış sürelerini değiştirebilir, durak çıkarabilir, gezilen yerleri işaretleyebilir ve gezinizi profilinize kaydedebilirsiniz.
+
+---
+
+## 🛠️ Nasıl Çalışır?
+
+Proje **"Hesabı Kod Yapar, Dil Modeli Destekler"** mimari prensibiyle geliştirilmiştir:
+
+1. **İstek Çözümleme:** Kullanıcının yazdığı serbest istek metni (isteğe bağlı Gemini API veya yerel kural tabanlı ayrıştırıcı ile) başlangıç noktası, gün, saat ve ilgi alanlarına ayrıştırılır.
+2. **Rota Motoru:** Gerçek mesafe matrisleri üzerinden gezgin satıcı / en kısa yol algoritmaları çalıştırılır; açılış saatleri ve öğle yemeği penceresi matematiksel olarak hesaplanır.
+3. **Yedekli Yapı:** Harici bir API anahtarı (`GEMINI_API_KEY`) olmasa bile uygulama kural tabanlı motoruyla %100 işlevsel olarak çalışmaya devam eder.
+
+---
+
+## 🚀 Hızlı Kurulum
+
+### 1. Depoyu Klonlayın
+```bash
+git clone https://github.com/ozlem23/rota-kocaeli.git
+cd rota-kocaeli
+```
+
+### 2. Sanal Ortamı Oluşturun ve Paketleri Yükleyin
 ```bash
 python -m venv .venv
-# Windows PowerShell:
+
+# Windows (PowerShell):
 .\.venv\Scripts\Activate.ps1
-# macOS/Linux:
+
+# macOS / Linux:
 # source .venv/bin/activate
 
 pip install -r requirements.txt
-copy .env.example .env
 ```
 
-## Tüm Parçaları Birlikte Test Etme (Entegrasyon)
+### 3. Uygulamayı Başlatın
+```bash
+streamlit run person3_ui/app.py
+```
+Tarayıcınızda otomatik olarak `http://localhost:8501` adresi açılacaktır.
+
+---
+
+## ⚙️ Yapılandırma (İsteğe Bağlı)
+
+Uygulama herhangi bir API anahtarı girmeden doğrudan çalışır. Gelişmiş dil modeli özelliklerini (doğal dil serbest metin çözümleme ve zenginleştirilmiş anlatım) aktif etmek isterseniz ana dizinde `.env` dosyası oluşturabilirsiniz:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+---
+
+## 🧪 Testleri Çalıştırma
+
+Tüm rota hesaplama motorunu, açılış saati denetimlerini ve arayüz testlerini tek komutla çalıştırabilirsiniz:
 
 ```bash
-# 1. Kişi 2 birim testleri + Kişi 1/2 20 senaryo + Kişi 3 harita/sözleşme testi (Tek komut):
 python test_all.py
-
-# 2. Tam entegre web arayüzünü başlatma:
-streamlit run person3_ui/app.py
 ```
 
-## Her Kişinin Bağımsız Çalıştırma Komutları
+---
 
-### Kişi 3 (Arayüz + Mock Modu — İlk Dakikadan Çalışır)
-```bash
-streamlit run person3_ui/app.py
-```
-> Kenar çubuğundan **"Mock (Demo) Modu"** seçiliyken Kişi 1 ve Kişi 2'yi beklemeden `contracts/mock_final_response.json` ile çalışır.
+## 🧰 Kullanılan Teknolojiler
 
-### Kişi 2 (Rota Motoru Birim Testleri)
-```bash
-pytest person2_engine/test_engine.py -v
-```
-
-### Kişi 1 (Veri Çekme ve 20 İstek Doğrulama)
-```bash
-# Şehir verisi üretmek için (örnek: İzmit veya seçilen şehir):
-python -m person1_data_ai.fetch_city_data --help
-
-# 20 istek otomatik doğrulama suite'ini çalıştırmak için:
-python -m person1_data_ai.eval_20
-```
-
-## Çakışmasız Git Akışı
-1. Herkes `main` dalından kendi dalını açar:
-   - `git checkout -b feat/kisi1-data-ai`
-   - `git checkout -b feat/kisi2-engine`
-   - `git checkout -b feat/kisi3-ui`
-2. Kimse diğer kişinin klasörüne dokunmaz (`contracts/` Faz 0'dan sonra kilitlidir).
-3. Entegrasyonda `main` içine sırayla merge edilir -> çakışma sıfır!
+* **Arayüz:** Streamlit, PyDeck, Custom CSS
+* **Veri & Coğrafi Modelleme:** OpenStreetMap, OSRM, Wikimedia Commons
+* **Backend & Tip Güvenliği:** Python 3.10+, Pydantic v2, SQLite
+* **Yapay Zeka Entegrasyonu:** Google GenAI SDK (Gemini 2.5 Flash / Kural tabanlı hibrit mimari)
